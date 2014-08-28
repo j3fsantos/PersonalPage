@@ -1,0 +1,71 @@
+h1 {
+	font-family: verdana;
+	margin-left: 2%;
+	margin-top: 2%;
+}
+
+h2 {
+	font-family: verdana;
+}
+
+textarea {
+	margin-bottom: 3px;
+}
+
+#span_red {
+	font-family: verdana;
+	font-size: 150%;
+	color: red;
+}
+
+#prog_input, #prog_output, #css_input {
+	width: 500px;
+	height: 300px;
+	font: normal 14px verdana;
+	padding: 2px 10px;
+	border: solid 1px #ddd;
+}
+
+#exec_iframe {
+	width: 500px;
+	height: 300px;
+	border: solid 1px #ddd;
+}
+
+#main {
+	width: 60%;
+	margin-left: 10%;
+	float: left;
+}
+
+#examples {
+	margin-top: 3%;
+	margin-left: -15%;
+	float: left;
+}
+
+#examples_code {
+	display: none;
+}
+
+#examples ul {
+	list-style-type: none;
+}
+
+#examples li {
+	border: black;
+	width: 400px;
+	padding: 2px;
+	display: block;
+	margin: 5px;
+	font: normal 20px verdana;
+	background-color: #ddd;
+}
+
+#examples li:hover {
+	background-color: #777777;
+}
+
+div {
+	float: left;
+}

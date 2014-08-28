@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title>Introduction to JavaScript</title>
+	
+	<meta name="description" content="Introduction to JavaScript">
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Core and extension CSS files -->
+	<link rel="stylesheet" href="deck.js/core/deck.core.css">
+	<link rel="stylesheet" href="deck.js/extensions/goto/deck.goto.css">
+	<link rel="stylesheet" href="deck.js/extensions/menu/deck.menu.css">
+	<link rel="stylesheet" href="deck.js/extensions/navigation/deck.navigation.css">
+	<link rel="stylesheet" href="deck.js/extensions/status/deck.status.css">
+	<link rel="stylesheet" href="deck.js/extensions/hash/deck.hash.css">
+
+	<!-- include code mirror default css and the theme you want. -->
+	<link rel="stylesheet" href="deck.codemirror.css">
+	<link rel="stylesheet" href="themes/default.css">
+
+	<!-- Theme CSS files (menu swaps these out) -->
+	<link rel="stylesheet" id="transition-theme-link" href="deck.js/themes/transition/horizontal-slide.css">
+	
+	<link rel="stylesheet" href="introduction.css">	
+	
+	<!-- Tooltipster CSS theme --> 
+	<link rel="stylesheet" type="text/css" href="tooltipster/css/tooltipster.css" />
+	
+	<!-- My style -->
+	<style type="text/css">
+            .myCodeDiv {
+	        font-size: xx-large; 
+		margin: 10px; 
+		background-color: #C2D6D6;  
+            }
+	    
+	    .myCodeSpan {
+	        font-size: xx-large; 
+	    }
+	</style> 
+	
+	<script src="modernizr.custom.js"></script>
+</head>
+
+<body>
+	<article class="deck-container">
+	
+	<section class="slide" id="js-data-types">
+	<h1>Introduction to JavaScript</h1>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>What we will see...</h2>
+	<ul> 
+	   <li><h3>The JavaScript language</h3></li> 
+	   <li><h3>DOM Scripting</h3></li> 
+	   <li><h3>The jQuery Library</h3></li>
+	   <li><h3>HTML5: Web Workers, Handling Files, Local Storage</h3></li>
+	   <li><h3>Mashups and Security Issues</h3></li>
+	   <li><h3>MVC frameworks for JavaScript: Spine and Backbone</h3></li>
+	   <li><h3>Testing and Deployment</h3></li>
+	</ul> 
+	</section>
+	
+	
+	
+	<section class="slide" id="js-data-types">
+	<h1>JavaScript Data Types</h1>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>JavaScript Data Types</h2>
+		<ul> 
+		  <li><h3>Number</h3></li> 
+		  <li><h3>String</h3></li> 
+		  <li><h3>Boolean</h3></li> 
+		  <li>
+		     <h3>Object</h3>
+			 <ul> 
+			    <li><h4>Function</h4></li>
+				<li><h4>Array</h4></li> 
+				<li><h4>Date</h4></li> 
+				<li><h4>RegExp</h4></li> 
+			 </ul>
+          </li>
+          <li><h3>Null</h3></li> 
+          <li><h3>Undefined</h3></li> 		  
+		</ul> 
+	</section>
+
+	<section class="slide" id="js-data-types">
+	<h2>Numbers</h2>
+	<h3>Double-precision 64-bit format IEEE 754</h3> 
+	<br /> 
+        <h3>Parsing: parseFloat() / parseInt() </h3>
+        <br /> 		
+		<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x = parseInt('3'); 
+var y = parseFloat('3.5');  
+console.log(x+y); 
+		</textarea></div>
+		<br /> 
+		<h3>Math namespace for 'advanced' functions:</h3>
+        <ul>
+           <li><h4><span class="tooltip" title="Math.PI <br />  Math.E <br /> Math.LN10 <br />...">Math Constants</span></h4></li> 
+           <li><h4><span class="tooltip" title="Math.abs() <br /> Math.floor() <br /> Math.random() <br />...">Math Functions</span></h4></li> 		   
+        </ul>		
+		<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x = Math.random()*10 + Math.E;
+console.log(x); 
+		</textarea></div>
+		<br /> 
+		<h3>Special Values</h3>
+		<ul> 
+		   <li><h4>NaN</h4></li> 
+		   <li><h4>Infinity and -Infinity</h4></li> 
+		</ul>
+        <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x = parseInt('banana'); 
+var y = x+7;  
+var w = 1/0; 
+var z = 9+(w*-1);
+console.log('x: '+x+' y: '+y+' w: '+w+' z: '+z);
+		</textarea></div>		
+	</section>
+		
+		
+	<section class="slide" id="js-data-types">
+	<h2>Strings</h2>
+	<div> 
+	<ul> 
+		<li><h4>Sequence of unicode characters (16 bit)</h4></li>
+		<li><h4>A character is a string of lenght 1</h4></li>
+		<li><h4>Strings are objects!!!</h4></li>			  
+	</u> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var s = 'batata'; 
+var c0 = s.charAt(0); 
+var c1 = s[1]; 
+var n = s.length; 
+console.log('c0: '+c0+' c1: '+c1+' n: '+n);  
+	</textarea></div>
+	<br /> 
+	<h3>String Functions</h3>
+	<div class="myCodeDiv"> 
+	  <span class="myCodeSpan">
+	     <table> 
+	        <tr><td>s.charAt(pos) s.charCodeAt(pos)                              </td></tr> 
+	        <tr><td>s.concat(s1, ..) s.indexOf(s1, start)                        </td></tr> 
+                <tr><td>s.lastIndexOf(s1, startPos) s.localeCompare(s1) s.match(re)  </td></tr> 
+                <tr><td>s.replace(search, replace) s.search(re) s.slice(start, end)  </td></tr> 
+                <tr><td>s.split(separator, limit)  s.substring(start, end)           </td></tr> 
+                <tr><td>s.toLowerCase() 
+		        <span class="tooltip" title="Conversion according to the locale <br /> specific case mappings">
+			   s.toLocaleLowerCase()
+			</span> 
+			s.toUpperCase() s.toLocaleUpperCase()  
+		</td></tr> 
+	     </table> 
+	 </span> 
+	</div>
+	<br /> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var s = 'BaTaTA'; 
+console.log('s.toLowerCase(): '+s.toLowerCase()); 
+console.log('s.toLocaleLowerCase(): '+s.toLocaleLowerCase());
+	</textarea></div>	
+        </div> 
+	</section>		
+
+    
+	<section class="slide" id="js-data-types">
+	<h2>Null and Undefined</h2>
+	<div>
+	<ul>
+		<li><h3>Null = Deliberately no value</h3></li> 
+		<li><h3>Undefined</h3>
+		   <ul>
+		      <li><h4>Variables declared but not initialized</h4></li>  
+		      <li><h4>Object properties that do not exist</h4></li> 
+		   </ul> 
+		</li> 
+		<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o ={}; 
+var x = o.p; 
+var y;
+var z=y; 
+console.log('x: '+o.p +' y: '+y+' z: '+z); 
+		</textarea></div>	
+	</ul> 
+        </div> 
+	</section>	
+	
+ 
+	<section class="slide" id="js-data-types">
+	<h2>Booleans</h2>
+	<div>
+	<h3>Boolean Constants: true, false</h3>
+	<h3>Boolean Operators: !!, ||, !</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x=true; 
+var y=!x; 
+var z = x||y; 
+console.log('x: '+x+' y: '+y+' z: '+z);  
+	</textarea></div>	
+	<ul> 
+	  <li><h3>All values are <em>truthy</em> or <em>falsy</em></h3></li> 
+          <li><h3>Undefined, null, 0, "" and NaN are <em>falsy</em></h3></li>  
+	  <li><h3>All other values are <em>truthy</em></h3></li>  
+	  <li><h3>Convert any value to its boolean equivalent by applying not twice: !!</h3></li>
+	</ul> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x;
+var y="";
+var z = !!(x||y||0); 
+console.log('z: '+z);  
+	</textarea></div>	
+        </div> 
+	</section>	
+    
+    
+	<section class="slide" id="js-data-types">
+	<h1>Variables, Operators and Control Structures</h1>
+	</section>
+
+	
+	<section class="slide" id="js-data-types">
+	<h2>Variable Declaration</h2>
+	<div>
+	<ul> 
+	  <li><h3>New variables are declared using the <em>var</em> keyword</h3></li> 
+          <li><h3>If you declare a variable without assigning anything to it, its value is </h3></li>
+	</ul> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x;
+console.log('x: '+x); 
+x=4;
+console.log('x: '+x);  
+	</textarea></div>	
+	<br /> 
+	<h3>Assigning a value to an <em>undeclared variable</em> creates a global variable</h3>
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var f=function(){y=3}; 
+f();
+console.log('y: '+y); 
+	</textarea></div>
+	<h4>NEVER DO THIS!!!!</h4>
+        </div> 
+	</section>	
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Operators</h2>
+	<div>
+	<ul> 
+	  <li><h3><em>Arithmetic Operators:</em> +, -, *, /, %</h3></li> 
+          <li><h3><em>Compound assignment operators:</em> +=, -=, *=, /=, %=</h3></li>
+	  <li><h3><em>Increment and Decrement:</em> x++, ++x, x--, --x</h3></li>
+	  <li><h3><em>String concatenation:</em> +</h3></li>
+	</ul> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x = 1 + 1; 
+console.log('x: '+x); 
+	</textarea></div>	
+        </div> 
+	</section>	
+
+	
+	<section class="slide" id="js-data-types">
+	<h2>Type Coercion</h2>
+	<div>
+	<h3>Be Careful: Numbers are coerced to strings!!!!</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x = '3' + 4 + 5; 
+var y = 3+4+'5'; 
+console.log('x: '+x+' y: '+y); 
+	</textarea></div>
+	<br /> 
+	<h3>Relational Operators - &gt, &lt, &gt=, &lt= - work for numbers and for strings</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var batata = 'batata'; 
+var potato = 'potato'; 
+console.log('batata > potato: '+(batata>potato)); 
+	</textarea></div>
+	<br /> 
+	<h3>The equality tests == and != use type coercion!!</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('\'1\' == 1: '+('1'==1)); 
+console.log('true == 1: '+(true == 1)); 
+console.log('true == 2: '+(true ==2)); 
+console.log('null == undefined: '+(null == undefined)); 
+	</textarea></div>
+	<h3>What to do? DO NOT USE THESE EQUALITY TESTS</h3> 
+	<br /> 
+	<h3>The equaltiy tests === and !== DO NOT use type coercion</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('\'1\' === 1: '+('1'===1)); 
+console.log('true === 1: '+(true === 1)); 
+console.log('true === 2: '+(true === 2)); 
+console.log('null === undefined: '+(null === undefined));
+	</textarea></div>
+	</div> 
+	</section>	
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Type Reflection</h2>
+	<div>
+	<h3>typeof</h3> 
+	<ul> 
+	  <li><h4>number: 'number'</h4></li>
+	  <li><h4>string: 'string'</h4></li>
+	  <li><h4>boolean: 'boolean'</h4></li>
+	  <li><h4>function: 'function'</h4></li>
+	  <li><h4>object: 'object'</h4></li>
+	  <li><h4>array: 'object'</h4></li>
+	  <li><h4>null: 'object'</h4></li>
+	  <li><h4>undefined: 'undefined'</h4></li>
+	</ul>
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('(typeof 1): '+(typeof 1)); 
+	</textarea></div>
+	</div>
+	</section>
+
+	
+	<section class="slide" id="js-data-types">
+	<h2>Control Structures - 1</h2>
+	<div>
+	<h3>if</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var y = confirm('Do you like JavaScript');
+if(y) { 
+  alert('good for you');
+} else {
+  alert('too bad'); 
+}       </textarea></div>
+        <br /> 
+	<h3>do/while</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var y;
+do{
+ y = confirm('Do you like JavaScript');
+} while(!y) </textarea></div>
+	<br />
+	<h3>Short Circuit Logic</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o = null;
+var name =  (o && o.name) || 'defaultName';
+console.log('name: '+name)</textarea></div>
+	</div>
+	<br />
+	<h3>Tertiary Logic</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var age = 17;  
+var ok = (age >= 18) ? 'yes' : 'no'; 
+console.log('Is it ok? '+ok); </textarea></div>
+	</div>
+	</section>
+
+	<section class="slide" id="js-data-types">
+	<h2>Control Structures - 2</h2>
+	<div>
+	<br />
+	<h3>Switch - Standard</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>switch(action){ 
+   'eat': eatIt(); break; 
+   'drink': drinkIt(); break; 
+   default: donothing(); 
+} 	</textarea></div>
+    <br /> 
+	<h3>Fall through: GOOD PRACTICE</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>switch(action){ 
+   case 1: // explicit fall through
+   case 2: drinkIt(); break; 
+   default: donothing(); 
+} 	</textarea></div>
+	<br />
+	<h3>Arbitrary Expressions in case statements</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>switch(1+3){ 
+   case 2+2: yay(); break;  
+   default: neverHappens(); 
+} 	</textarea></div>
+	<br />	
+	</div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Control Structures - 3</h2>
+	<div>
+	<br />
+	<h3>Try/Catch</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>try{ 
+  throw 'excepcao';
+}catch(e){
+  console.log('typeof e: ' + (typeof e) + ' e: '+e); 
+}</textarea></div>
+    <br />
+	<h3>Error</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>try{ 
+  throw new Error('excepcao');
+}catch(e){
+  console.log('typeof e: ' + (typeof e) + ' e: '+e); 
+}</textarea></div>
+    <br /> 	
+	<h3>And <em>Finally</em></h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>try{ 
+  var x = x+1;
+}catch(e){
+  console.log('typeof e: ' + (typeof e) + ' e: '+e); 
+}finally {
+  console.log('this is always executed'); 
+}</textarea></div>
+    <br /> 	
+	</div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h1>Objects and Arrays</h1>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Objects - 1</h2>
+	<div>
+	<h3>An object is just an hashmap that maps strings to values</h3>
+	<br /> 
+	<h3>Object literal notation: </h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o = { 
+  p: 'x', 
+  q: true,
+  r: { s: 13, t: 0 }  
+}; 
+console.log('o.r.s: '+o.r.s); 
+</textarea></div>	
+	<br />
+	<h3>Accessing object properties: o[e] or o.p </h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var p = 'q'; 
+var o = { p: 's', q: 't' }; 
+console.log('o[x]: '+o[x]+' o.p: '+o.p); 
+</textarea></div>		
+    <br />
+	<h3>Properties can be dynamically added</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o = {  p: 's', q: 't'}; 
+o.r = 'u'; 
+console.log('o.r: '+o.r);
+</textarea></div>	
+	</div> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Objects - 2</h2>
+	<div> 
+	<h3>Iterating over the keys of an object: for/in loop </h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>
+var o = {p: 0, q: 1}; 
+for(var prop in o){
+  console.log('prop: '+ prop + ' value: '+ o[prop]); 
+}
+</textarea></div>
+	<br />
+	<h3>General object Constructor</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o = new Object();
+o.p = 3;  
+console.log('o.p: '+o.p); 
+</textarea></div>	
+	</div>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Arrays - 1</h2>
+	<div> 
+	<h3>Arrays are special objects BUT they are still objects</h3>
+    <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a = [3, 4, 6]; 
+a[2.45] = 666; 
+console.log('a[2.45]: '+a['2.45']); 
+</textarea></div>	
+	<br /> 
+	<h3>In JavaScript arrays are <em>sparse</em></h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a = [3, 4, 6]; 
+a[9999] = 33; 
+console.log('a[9999]: '+a[9999]+' a.length: '+a.length);  
+</textarea></div>	
+    <br /> 
+	<h3>Iterate over the elements of an array</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a = [3, 4, 6]; 
+for(var i=0, len=a.length; i &lt len; i++){
+  console.log('a['+i+']='+a[i]);  
+}</textarea></div>		
+	</div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Arrays - 2</h2>
+	<div> 
+	<h3>The array constructor</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a = new Array(3); 
+a[2] = 'a[2]: ';
+console.log(a[2]+a[2]); </textarea></div>	
+    <br /> 	
+	<h3>MultiDimensional Arrays</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var table = new Array(3); 
+for(var row=0, rowlen=table.length; row &lt rowlen; row++){
+  table[row] = new Array(row);  
+}
+for(row=0, rowlen=table.length; row &lt rowlen; row++) { 
+  for(var col=0, collen=table[row].length; col&lt collen; col++){ 
+     table[row][col] = row*col; 
+  }
+}
+console.log('table: '+table); </textarea></div>		
+	</div> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Operations on Arrays</h2>
+	<div>
+	<ul> 
+	   <h3><em>join(): </em>Converts all elements of the array to strings and concatenates them</h3>
+	   <h3><em>concat(): </em>Appends its input to the array on which it is invoked</h3>
+	   <h3><em>slice() and 
+	       <span class="tooltip" title="Removes the slice from <br /> the original array">splice()</span>:</em>
+		   Extract a subarray from the original array</h3>
+	</ul>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a1 = [3, 4, 5, 7, 8];
+var a2 = a1.slice(2,4);
+console.log('a1: ' + a1 + '  a2: ' + a2);  
+a2 = a1.splice(2,3); 
+console.log('a1: ' + a1 + '  a2: ' + a2);  </textarea></div> 
+	<br /> 
+	<ul> 
+	   <h3><em>shift() and unshift(): </em>Adds and removes an element from the beginning of the array</h3>
+	   <h3><em>push() and pop(): </em>Adds and removes an element from the end of the array</h3>
+	</ul>  
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a1 = [3, 4, 5, 7, 8];
+a1.push(9);
+a1.shift(10); 
+console.log('a1: ' + a1 );  </textarea></div> 
+	</div>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h1>Functions and Scope</h1>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Functions</h2>
+	<h3>Function declarations: </h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function add(x, y) { 
+   return x + y; 
+} 
+console.log('add(3,4): '+add(3,4))</textarea></div> 
+    <h3>When nothing is explicitly returned, the return value is <em>undefined</em></h3>
+    <br />
+    <h3>Functions are VALUES</h3> 
+    <h3>The function literal notation:</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var add = function(x, y) { 
+   return x + y; 
+} 
+console.log('add(3,4): '+add(3,4))</textarea></div> 
+	</div>
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>A question of arguments... </h2>
+	<h3>Arguments are not mandatory, they are more like <em>guidelines</em></h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function add(x, y) { 
+   return x + y; 
+} 
+console.log('add(3): '+add(3)+' add(3,4,5): '+add(3,4,5))</textarea></div> 
+    <h3>When nothing is explicitly returned, the return value is <em>undefined</em></h3>
+    <br />
+    <h3>The arguments special variable provides access to the arguments as an array-like object</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var add = function() { 
+   var retVal = 0; 
+   for(var i=0, len=arguments.length; i&lt len; i++){ 
+     retVal += arguments[i]; 
+   } 
+   return retVal; 
+} 
+console.log('add(3,4,5,6): '+add(3,4,5,6))</textarea></div>
+    <br /> 
+    <h3>Be careful...</h3>
+    <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function f(x) {
+   console.log('x: '+x); 
+   arguments[0] = undefined;
+   console.log('x: '+x);    
+}
+f(3); 
+</textarea></div>
+	</div>
+	</section> 	
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Higher order functions...</h2>
+	<h3>Functions that take other functions as inputs</h3>. 
+    <h3>Examples:</h3> 	
+	<ul> 
+	   <li><h4>Filters</h4></li>
+       <li><h4>Transformers</h4></li> 
+       <li><h4>Accumulator</h4></li> 	   
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function even(x) {
+   return !(x%2); 
+} 
+var filter = function(arr, filterFun){
+  var arr2 = [];
+  var current;   
+  for(var i=0, len = arr &amp;&amp; arr.length; i&lt; len; i++)
+    if(filterFun(current=arr[i])) arr2.push(current);  
+  return arr2; 
+}
+console.log('even([3,7,9,2,4,9]): '+filter([3,7,9,2,4,9], even))</textarea></div> 
+    </div>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Scope - 1</h2>
+	<h3>JavaScript is <em>syntactically</em> scoped!</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function a() {
+  var y = 'y defined by a';
+  function b() {
+    var y = 'y defined by b';
+	c();
+  }
+  function c() { 
+    alert(y); 
+  }
+  b();   
+}
+a(); </textarea></div>
+    <br /> 
+    <h3><em>Closure: </em>Function+Environment</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var uniqueId = function() { 
+  var id = 0; 
+  return function() { return id++; } 
+} 
+var idGenerator1 = uniqueId(); 
+console.log('id1: '+idGenerator1()); 
+</textarea></div>     	
+    </div>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Scope - 2</h2>
+	<h3>There is no block scope. We can simulate it with anonymous functions.</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a = 1;
+var b = 2;
+(function() {
+var b = 3;
+a += b;
+})();
+console.log('a: '+a); 
+</textarea></div>
+    <br /> 
+	<h3><em>with</em>: adds an object to the top of the scope chain</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o={p: 1, q:2}; 
+with(o){
+  p=2; 
+} 
+console.log(o.p); 
+</textarea></div>
+    <br /> 
+    <h3>Why is this useful?</h3>  
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>
+frames[1].document.forms[0].address.value = 'xxxx'; 
+with(frames[1].document.forms[0]) {
+   address.value = 'xxxx';
+} </textarea></div>
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h2>Calling functions explicitly</h2>
+	<h3>f.call(o, arg1, ..., argn)</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function f() {
+   var res=0; 
+   for(var i=0; i&lt;arguments.length; i++) { 
+      res += arguments[i]; 
+   }
+   return res; 
+}
+console.log(f.call(null, 1, 2, 3, 4)); 
+</textarea></div>
+    <br /> 
+	<h3>f.apply(o, array)</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function f() {
+   var res=0; 
+   for(var i=0; i&lt;arguments.length; i++) { 
+      res += arguments[i]; 
+   }
+   return res; 
+}
+console.log(f.apply(null, [1, 2, 3, 4])); 
+</textarea></div>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Recursive anonymous functions</h2>
+	<h3>How to call an anonymous function recursively? <em> arguments.callee</em></h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function counter() {
+	if (!arguments.callee.count) {
+		arguments.callee.count = 0;
+	}
+	return arguments.callee.count++;
+}
+console.log(counter());  
+</textarea></div>
+    <h3>arguments.callee holds the reference of the function being executed</h3> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h1>Methods, Constructors and Prototypes</h1>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Methods</h2>
+	<h3>Method: a function that is a property of an object</h3>
+	<ul>
+	  <li><h3>Set a property of an object to a function</h3></li>
+	  <li><h3>Invoke the function using the notation: o.m(arg1, ..., argn)</h3></li>
+      <li><h3>During the execution of the method the <em>this</em> keyword is bound to o</h3></li> 	  
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o = {p: 3, q: 0}; 
+o.m = function(){alert('p: '+this.p)}; 
+o.m();   
+</textarea></div>
+    <br /> 
+	<h3>REMARK: Inside the body of the method, you must use the <em>this</em> keyword to refer to 
+	    the properties of the object</h3> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Constructors</h2>
+	<h3>Constructor: a function to be called with an empty object that initializes its fields</h3>
+	<h3>Calling a constructor with the <em>new</em> keyword: new F()</h3> 
+	<ul>
+	  <li><h3>The JavaScript engine creates a new empty object</h3></li>
+	  <li><h3>The internal prototype of the new object is set to F.prototype</h3></li>
+	  <li><h3>F is invoked on the new object (the <em>this</em> is bound to the new object)</h3></li>
+	  <li><h3>If F does not return, the new object is returned, otherwise the expression evaluates 
+          to the value returned by F</h3></li> 	  
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function Rectangle(w, h) { 
+  this.w = w; 
+  this.h = h; 
+  this.area = function(){ return this.w * this.h } 
+}
+var r1 = new Rectangle(10, 3); 
+console.log('r1.area(): ' + r1.area()); 
+</textarea></div>
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>More on prototypes...</h2>
+	<h3>To understand prototypes we have to understand the <em>property lookup</em> 
+	    evaluation rule</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o1 = {p: 3}; 
+function F1() { 
+   this.q = 3; 
+}
+F1.prototype = o1;
+var o2 = new F1(); 
+console.log('o2.p: '+o2.p);  
+</textarea></div>
+     <br /> 
+	 <h3>REMARK: o1 is not the prototype of F1! It is the prototype of the objects created 
+		    using F1</h3> 
+	 <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o1 = {p: 3}; 
+function F1() { 
+};
+F1.prototype = o1;
+var o2 = new F1();
+o2.q = 4; 
+function F2() { 
+   this.r = 5; 
+}; 
+F2.prototype = o2; 
+var o3 = new F2();  
+console.log('o3.p: '+o3.p);  
+</textarea></div>
+     <br /> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Taking advantage of prototypes</h2>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function Rectangle(w, h) { 
+  this.w = w; 
+  this.h = h; 
+}
+Rectangle.prototype.area = function(){ return this.w * this.h } 
+var r1 = new Rectangle(10, 3); 
+console.log('r1.area(): ' + r1.area()); 
+</textarea></div>
+    <h3>Remark: the area function is not replicated in every instance</h3>
+    <br /> 
+    <h3>How to distinguish <em>local</em> properties from <em>inherited</em> ones? <em>hasOwnProperty</em></h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function Rectangle(w, h) { this.w = w; this.h = h; }
+Rectangle.prototype.area = function(){ return this.w * this.h } 
+var r1 = new Rectangle(10, 3); 
+console.log('r1.area: ' + !!(r1.area));
+console.log(r1.hasOwnProperty('area')); 
+</textarea></div>	
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Emulating Inheritance - 1</h2>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function Rectangle(w, h) { 
+  this.w = w; 
+  this.h = h; 
+}
+
+Rectangle.prototype.area = function(){ return this.w * this.h } 
+
+function PositionedRectangle(x, y, w, h) {
+Rectangle.call(this, w, h);
+this.x = x;
+this.y = y;
+}
+
+PositionedRectangle.prototype = new Rectangle();
+delete PositionedRectangle.prototype.width;
+delete PositionedRectangle.prototype.height;
+
+PositionedRectangle.prototype.constructor = PositionedRectangle;
+PositionedRectangle.prototype.contains = function(x, y) {
+	return (x &gt; this.x &amp;&amp; x &lt; this.x + this.width) &amp;&amp; 
+	    (y &gt; this.y &amp;&amp; y &lt; this.y + this.height);
+}
+var r1 = new PositionedRectangle(3, 3, 3, 4); 
+console.log('r1.contains(2,2): ' + r1.contains(2,2)); 
+console.log('r1.area(): ' + r1.area()); 
+</textarea></div>
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Emulating Inheritance - 2</h2>
+	<h3>Systematizing...</h3>
+	<ul> 
+	  <li><h3>Invoke the superclass constructor from the subclass constructor</h3></li>
+	  <li><h3>Explicitly create the prototype object as an instance of the superclass</h3></li>
+	  <li><h3>Explicitly set the constructor property of the prototype object</h3></li>
+	  <li><h3>Delete any properties that the superclass constructor created in the prototype object</h3></li>	  
+	</ul> 
+	<br /> 
+	<h3>More suggestions: Add a property named superclass to the prototype of the subclass</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>PositionedRectangle.prototype.superclass = Rectangle;
+</textarea></div> 	
+	<br /> 
+	<h3>Why? Decouple the subclass and the superclass</h3> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Emulating Multiple Inheritance</h2>	
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function borrowMethods(borrowFrom, addTo) {
+   from = borrowFrom.prototype;
+   to = addTo.prototype;
+   for(var m in from) {
+     if((typeof from[m])!= `function') continue;
+     to[m] = from[m];
+  }
+}
+function Colored(c) { this.color = c; }
+Colored.prototype.getColor = function() { return this.color; }
+function ColoredRectangle(x, y, w, h, c) {
+  this.superclass(x, y, w, h);
+  this.color = c;
+}
+ColoredRectangle.prototype = new PositionedRectangle();
+ColoredRectangle.prototype.constructor = ColoredRectangle;
+ColoredRectangle.prototype.superclass = PositionedRectangle;
+borrowMethods(Colored, ColoredRectangle);</textarea></div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Runtime Type Identification</h2>
+	<h3>Several options:</h3> 
+    <ul> 
+	  <li><h3><em>typeof:</em> general type</h3></li>
+	  <li><h3><em>constructor property:</em> identifies the constructor</h3></li>
+      <li><h3><em>instanceof:</em> considers all the prototype chain</h3></li> 	  
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var a = [1,2,3]; 
+console.log('a instanceof Array: '+(a instanceof Array)); 
+console.log('a instanceof Object: '+(a instanceof Object));
+console.log('a instanceof String: '+(a instanceof String));
+console.log('a.constructor == Object: '+(a.constructor == Object));
+console.log('a.constructor == Array: '+(a.constructor == Array));
+</textarea></div>
+    <br /> 
+	<h3><em>Duck Typing: </em>If it walks like a duck and if it quacks like a duck, it's a duck!</h3> 
+</div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h1>Other Topics</h1>	
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Modules</h2>
+    <h3>Some initial remarks</h3>	
+	<ul> 
+	  <li><h3>Javascript shares a single global namespace</h3></li>
+	  <li><h3>It's easy to clobber other people's functions and variables</h3></li> 
+	  <li><h3>The less code affecting the global namespace, the better</h3></li>
+	</ul>
+    <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var myLib = {}; 
+(function(){
+   function functionCounter(){
+     counter++;
+     return counter;
+   }
+   var counter = 0;
+   myLib.functionCounter = functionCounter;
+})();
+console.log(myLib.functionCounter()); 
+</textarea></div>	
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Regular Expressions in JavaScript - 1</h2>
+	<h3>Creating a regular expression:</h3>
+    <ul> 
+	   <li><h3>Literal Syntax: /s$/</h3></li> 
+	   <li><h3>RegExp constructor: new RegExp('s$')</h3></li>
+    </ul>
+    <h3>Small Summary - 1</h3> 
+    <ul>
+	    <li><h3>[...] - any of the characters between the brackets</h3></li>
+		<li><h3>[^...] - any character NOT between the brackets</h3></li>
+		<li><h3>. - any character except the newline</h3></li>
+		<li><h3>\w - any ASCII word character</h3></li>
+		<li><h3>\W - any non-ASCII word character</h3></li>
+		<li><h3>\s - any white space character</h3></li>
+		<li><h3>\S - any non-white space character</h3></li>
+		<li><h3>\d - any digit</h3></li>
+		<li><h3>\D - any non-digit</h3></li>
+    </ul>  	
+    </section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Regular Expressions in JavaScript - 2</h2>
+	<h3>Specifying repetition</h3> 
+	<ul>
+	    <li><h3>{m} - matches the previous item m times</h3></li>
+		<li><h3>{n,m} - matches the previous item at least n times but no more than m times</h3></li> 
+		<li><h3>{n,} - matches the previous item at least n times</h3></li> 
+		<li><h3>? - matches one or zero occurrences of the previous item</h3></li> 
+        <li><h3>+ - matches one or more occurrences of the previous item</h3></li> 
+        <li><h3>* - matches zero or more occurrences of the previous item</h3></li> 		
+	</ul>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var pattern1 = /[a-z|A-Z|0-9]/;
+var s = 'isto esta atrasado'; 
+console.log(s.search(pattern1));
+var pattern2 = /([j|J]ava)?[s|S]cript/; 
+s = 'dynamic languages, like javascript, are fun but error prone.'; 
+console.log(s.search(pattern2)); 
+</textarea></div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Regular Expressions in JavaScript - 3</h2>
+	<h3>String methods to handle regular expressions: </h3> 
+	<ul>
+	    <li><h3>search(): outputs the index of the first match</h3></li>
+		<li><h3>match(): outputs an array with </h3></li> 
+		<li><h3>split(): breaks the string according to the pattern</h3>
+		<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var s1 = '    laranja,    morango,      maracuja    ';  
+var arr = s1.split(/\s*,\s*/);
+for(var i=0, len=arr.length; i&lt; len; i++){
+   console.log('arr['+i+']: '+arr[i]); 
+} 
+</textarea></div></li>
+        <li><h3>replace(): performs a regular search and replace</h3>
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var s1 = 'o meu romance preferido nao e o \"memorial do convento\"'; 
+var regexp = /"([^']*)"/g; 
+var s2 = s1.replace(regexp, '$1');
+console.log('s1: '+s1); 
+console.log('s2: '+s2); 
+</textarea></div></li>   		
+	</ul> 
+	</section>
+
+
+	<section class="slide" id="js-data-types">
+	<h2>Regular Expressions in JavaScript - 4</h2>
+	<h3>Regular expression <em>anchors</em>: </h3>
+    <ul> 
+	   <li><h3>\b: matches a word boundary</h3></li>
+	   <li><h3>\B: matches a position that is NOT a word boundary</h3></li>	   
+	   <li><h3>^: matches the begining of a string or the begining of a line</h3></li>
+	   <li><h3>$: matches the end of a string or the end of a line</h3></li>
+    </ul> 	
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var s1 = 'so me interessa a palavra script e nao a palavra javascript';
+var pattern = /\bscript\b/g;  
+var arr = s1.match(pattern); 
+var index = s1.search(pattern); 
+console.log('arr.length: '+arr.length+ ' arr[0]: '+arr[0]+ ' index: '+index ); 
+</textarea></div>
+    <br /> 
+	<h3>Remarks: </h3>
+    <ul> 
+	   <li><h3>The <em>g</em> specifies a global matching: otherwise the match methods only returns the first match</h3></li> 
+	   <li><h3>The index of the match does not take the anchors into consideration</h3></li>
+    </ul> 	
+	</section> 	
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Regular Expressions in JavaScript - 5</h2>
+	<h3>The RegExp object:</h3>
+    <ul> 
+	   <li><h3>lastIndex: index of the argument string from which the exec method will start looking for matches</h3></li> 
+	   <li><h3>test(str): outputs true if there is a match</h3></li> 
+	   <li><h3>exec(str): outputs the index of the first match starting from the lastIndex and updates the lastIndex</h3></li>
+    </ul> 	
+   	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var pattern = /Java/g;
+var text = 'JavaScript is more fun than Java!';
+var result;
+while((result = pattern.exec(text))!= null) {
+	console.log('Matched ' + result[0] + 
+	' at position '	+ result.index +
+	' next search begins ' + pattern.lastIndex);
+}
+</textarea></div>	
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h1>Dynamic evaluation and JSON</h1>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>JSON</h2>
+	<h3>JSON stands for JavaScript Object Notation</h3>
+    <h3>Parsing JSON:</h3> 
+    <ul> 
+	   <li><h3>eval() </h3></li>
+	   <li><h3>JSON.parse()</h3></li>
+    </ul> 	
+    <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var s1 = '{\"people\": [ {\"first\": \"ana\",  \"last\": \"cardoso\"}, {\"first\": \"maria\",  \"last\": \"ferreira\"}]}';
+var o1 = JSON.parse(s1);  
+console.log('o1.people[0].first: '+o1.people[0].first); 
+	</textarea></div>
+	<br /> 
+	<h3><em>Advice:</em> Use JSON.parse() instead of eval()</h3> 
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Dynamic code evaluation</h2>
+	  <h3>eval()</h3> 
+	  <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var myValue; 
+var myObject = {key1: 666};
+var myKey = 'key1';
+eval('myValue = myObject.' + myKey + ';');
+console.log('myValue: '+myValue); 
+</textarea></div> 
+      <br />
+	  <h3>Alternative: use the brackets notation</h3> 
+	  <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var myValue; 
+var myObject = {key1: 666};
+var myKey = 'key1';
+myValue = myObject[myKey]; 
+console.log('myValue: '+myValue); 
+</textarea></div> 
+      <br /> 	  
+	  <h3>Eval is not needed!</h3> 
+	</section> 	
+
+	
+	<section class="slide" id="js-data-types">
+	<h1>Summarizing the Bad Parts</h1>
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h2>Global Variables</h2>
+	<h3>There are 3 ways to create global variables: </h3>
+    <ul>
+	   <li><h3>Setting a property of the window object:</h3>
+       <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>window.foo = 'foo'; 
+</textarea></div>	   
+	   </li> 
+	   <li><h3>Declaring a variable outside of any function:</h3>
+       <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var foo = 'foo'; 
+</textarea></div>	   
+	   </li>	   
+	   <li><h3>Assigning a value to a variable without declaring it:</h3>
+       <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>(function(){ 
+  foo = 'foo';
+})(); 
+</textarea></div>	   
+	   </li>	   
+    </ul>
+    <br /> 	
+	<h3><em>Advice:</em> Do NOT pollute the global environment - NAMESPACING</h3>  
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Strange scope rules</h2>
+	<h3>Keep in mind that JavaScript does not provide block scope: variables declared within a block 
+	    are visible in the whole function</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var x =0; 
+function f(){ 
+  alert('x: '+x); 
+  if(confirm('what do you want to do?')){
+     var x = 3; 
+  }
+  alert('x: '+x); 
+}
+f(); 
+</textarea></div>
+    <br />  
+    <h3>The same happens with function declarations</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function f() { 
+  console.log('external f is running'); 
+} 
+function g() {
+  f();  
+  if(confirm('what do you want to do?')){
+     function f() {
+        console.log('internal f is running'); 	 
+     }	 
+  } 
+}
+g(); 
+</textarea></div>
+    <h3>Different browsers execute this in different ways...</h3>
+    <br /> 
+    <h3><em>Advice:</em> Variable and function declarations always in the begining</h3>     
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Automatic semicolon insertion</h2>
+	<h3>Do not trust semicolon insertion!</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function f(){ 
+   return 
+     {result: 0}
+}
+console.log('f(): '+f()); 
+</textarea></div>	
+    <br /> 
+	<h3>However...</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function f(){ 
+   return {
+     result: 0}
+}
+console.log('f(): '+f()); 
+</textarea></div>
+    <br /> 
+    <h3><em>Advice:</em> Indent your code correctly</h3>     	
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Abstruse typeof operator</h2>
+	<h3>what is the type of null?</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('null\'s type: ' + (typeof null)); </textarea></div>
+	<br /> 
+    <h3>How to test a value for <em>objectnessj</em>?</h3>     
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var o = {}; 
+var isObject = (o &amp;&amp; ((typeof o) ==='object')); 
+console.log('isObject: '+isObject); </textarea></div>
+	<br />
+    <h3>And what about regexps? Implementations diverge!</h3>	
+	<br /> 
+    <h3><em>Advice:</em> Avoid RTTI</h3>     	
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>parseInt()</h2>
+	<h3>parseInt() converts the string given as the input to an integer, but... it 
+	    stops when it sees a nondigit</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var n1 = parseInt('13'); 
+var n2 = parseInt('13 ola mundo'); 
+console.log('n1: '+n1+' n2: '+n2);</textarea></div>
+    <br /> 
+	<h3>If the number starts with the digit 0, parseInt assumes that it is in octal</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var n1 = parseInt('013'); 
+var n2 = parseInt('080'); 
+console.log('n1: '+n1+' n2: '+n2);</textarea></div>
+	<br /> 
+	<h3><em>Advice:</em> You can and SHOULD specify the basis on which the number is written as a second 
+	argument... </h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var n1 = parseInt('013', 10); 
+var n2 = parseInt('080', 10); 
+console.log('n1: '+n1+' n2: '+n2);</textarea></div>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>+</h2>
+	<h3>+ is used both for numbers and strings</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var n1 = 3 + '4'; 
+var n2 = 3 + ''; 
+var n3 = 3 + false; 
+var n4 = 3 + null; 
+var n5 = 3 + undefined; 
+console.log('n1: '+n1+' n2: '+n2+' n3: '+n3+' n4: '+n4+' n5: '+n5)
+console.log('typeof n2: '+(typeof n2)+' typeof n3: '+(typeof n3)) </textarea></div>
+	<br /> 
+	<h3><em>Advice:</em> Do NOT trust implicit coercions! </h3>	
+	</section> 
+	
+
+	<section class="slide" id="js-data-types">
+	<h2>NaN</h2>
+	<h3>NaN stands for <em>not a number</em>. However...</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('typeof NaN: '+(typeof NaN))</textarea></div>
+    <h3>Apparently, NaN is a number after all!</h3> 
+	<br /> 
+	<h3>But it is a number that it's not equal to itself:</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('NaN === NaN: '+(NaN === NaN))
+console.log('NaN !== NaN: '+(NaN !== NaN))</textarea></div>
+    <br /> 
+	<h3>JavaScript provides an isNaN function that can distinguish between numbers and NaN:</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('isNaN(NaN): ' + isNaN(NaN)); 
+console.log('isNaN(0): ' + isNaN(0)); 
+console.log('isNaN(\'oops\'): ' + isNaN('ooops'));
+console.log('isNaN(\'0\'): ' + isNaN('0'));      </textarea></div>
+	<br /> 
+	<h3><em>Advice:</em> Use isFinite() - it rejects NaN and Infinity</h3>	
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function isNumber(n){
+  return ((typeof n)==='number') && isFinite(n); 
+}</textarea></div> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Object.prototype</h2>
+	<h3>Every object <em>inherits</em> from the object Object.prototype. So what???</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var i, word;
+var text = 'A constructor is just a normal function that is to be invoked with the new keyword';
+var words = text.toLowerCase( ).split(/[\s,.]+/);
+var count = {};
+for (i = 0; i &lt; words.length; i += 1) {
+    word = words[i];
+    if (count[word]) {
+        count[word] += 1;
+    } else {
+        count[word] = 1;
+    }
+}
+console.log('count[\'just\']: '+count['just']);
+console.log('count[\'constructor\']: '+count['constructor']); 
+</textarea></div>
+    <h3>Solution: if((typeof count[word]) === 'number')</h3> 
+    <br /> 
+	<h3>Advice: use the hasOwnProperty()</h3> 
+	</section>  
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Reserved Words</h2>
+	<h3>The following words are reserved:</h3> 
+	<div class="myCodeDiv"> 
+	  <span class="myCodeSpan">
+	     <table> 
+	        <tr><td>abstract boolean break byte case catch char class const continue </td></tr> 
+	        <tr><td> debugger default delete do double else enum export extends false final</td></tr> 
+            <tr><td>finally float for function goto if implements import in instanceof   </td></tr> 
+            <tr><td>int interface long native new null package private protected </td></tr> 
+            <tr><td>public return short static super switch synchronized this    </td></tr> 
+            <tr><td>throw throws transient true try typeof var volatile void while with      </td></tr> 
+	     </table> 
+	 </span> 
+	</div>
+	<br /> 
+	<h3>Facts about the <em>Reserved words</em>:</h3> 
+	<ul> 
+	   <li><h3>Most of them are not keywords of the language</h3></li> 
+	   <li><h3>They cannot be used to name variables or parameters</h3></li> 
+	   <li><h3>When used as keys in object literals, they must be quoted</h3></li> 
+	   <li><h3>They cannot be used with the dot notation</h3></li>
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var method;                // ok
+var class;                 // illegal
+object = {box: value};     // ok
+object = {case: value};    // illegal
+object = {'case': value};  // ok
+object.box = value;        // ok
+object.case = value;       // illegal
+object['case'] = value;    // ok
+</textarea></div>
+	</section>	
+
+
+	<section class="slide" id="js-data-types">
+	<h2>Equality testing with ==</h2>
+	<h3>Type coercion precedes the equality testing</h3>  
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>console.log('\'\' == \'0\': '+ ''==0); 
+console.log('0==\'\': '+(0 == '')); 
+console.log('0 == \'0\': '+(0=='0')); 
+console.log('false == \'false\': '+(false=='false')); 
+console.log('false == \'false\': '+(false=='false')); 
+console.log('false == \'0\': '+(false=='0'));  
+console.log('false == undefined: '+(false==undefined)); 
+console.log('false == null: '+(false==null)); 
+console.log('null == undefined: '+(null==undefined)); 
+console.log('\'\\t\\r\\n\' == 0: '+('\t\r\n' == 0));  </textarea></div>	
+    <br /> 
+	<h3><em>Advice:</em> Use === instead!</h3> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h1>Summary</h1>
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>What to keep in mind...</h2>
+	<ul> 
+	  <li><h3>Everything in JavaScript is an Object. Even functions</h3></li>
+	  <li><h3>Every object is always mutable</h3></li>
+	  <li><h3>The dot operator is equivalent to de-referencing by hash (e.g., foo.bar === foo["bar"])</h3></li>
+	  <li><h3>The new keyword creates an object that is bound to the <em>this</em> keyword in the 
+              when the constructor is executing</h3></li>
+	  <li><h3>Functions are always closures</h3></li>
+	  <li><h3>The prototype property is mutable</h3></li>
+	  <li><h3>The this keyword is relative to the execution context</h3></li> 
+	</ul>  
+	</section> 
+	
+	
+	
+	
+	<a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+	<a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+		<p class="deck-status">
+			<span class="deck-status-current"></span>
+			/
+			<span class="deck-status-total"></span>
+		</p>
+
+		<form action="." method="get" class="goto-form">
+			<label for="goto-slide">Go to slide:</label>
+			<input type="number" name="slidenum" id="goto-slide">
+			<input type="submit" value="Go">
+		</form>
+
+		<a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+	</article>
+
+	
+	<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>-->
+	<script src="jquery-1.9.0.min.js"></script>
+	<script type="text/javascript" src="tooltipster/js/jquery.tooltipster.min.js"></script>
+	
+	<!-- Deck Core and extensions -->
+	<script src="deck.js/core/deck.core.js"></script>
+	<script src="deck.js/extensions/menu/deck.menu.js"></script>
+	<script src="deck.js/extensions/goto/deck.goto.js"></script>
+	<script src="deck.js/extensions/status/deck.status.js"></script>
+	<script src="deck.js/extensions/navigation/deck.navigation.js"></script>
+	<script src="deck.js/extensions/hash/deck.hash.js"></script>
+  
+  <!-- include the base codemirror code. -->
+  <script src="codemirror.js"></script>
+	
+	<!-- include the code syntax you want to highlight -->
+	<!-- javascript -->
+  <script src="mode/javascript/javascript.js"></script>
+
+  <!-- html mode : note code miror requires xml, css and javasript modes for html rendering -->
+  <script src="mode/xml/xml.js"></script>
+  <script src="mode/css/css.js"></script>
+  <script src="mode/htmlmixed/htmlmixed.js"></script>
+  
+	<script src="deck.codemirror.js"></script>
+	
+	
+	<!-- Stuff specific to this page -->
+	<script src="introduction.js"></script>
+	
+	<script>
+        $(document).ready(function() {
+            $('.tooltip').tooltipster();
+	    var x = $('.myCodeSpan'); 
+	    x.css('font-size', 'x-large');
+	    x.css('font-weight', 'bold');
+		window.action = 'eat';
+		window.eatIt = function(){ alert('eat'); }; 
+		window.drinkIt = function() { alert('drink'); };
+		window.getObject = function() { return {} }; 
+        });
+       </script>
+   
+
+</body>
+</html>

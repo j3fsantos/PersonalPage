@@ -1,0 +1,122 @@
+<html>
+
+   <head>
+      <title>Typing Secure Information Flow in JavaScript</title>
+        <link rel="stylesheet" href="srcs/styles/page/main.css" />
+        <link rel="stylesheet" href="srcs/styles/libs/qunit-git.css" />
+        
+        <script src="srcs/js/libs/jquery-1.9.0.min.js"></script>
+		<script src="srcs/js/libs/jquery.validate.min.js"></script>
+		<script src="srcs/js/libs/esprima.js"></script>
+		<script src="srcs/js/libs/escodegen.js"></script>
+		<script src="srcs/js/type_system/utils.js"></script>
+		<script src="srcs/js/type_system/lattice.js"></script>
+		<script src="srcs/js/type_system/cond_sets.js"></script>
+		<script src="srcs/js/type_system/type_parser.js"></script>
+		<script src="srcs/js/type_system/type_checker.js"></script>
+		<script src="srcs/js/page/main.js"></script>
+	</head>
+	<body>
+		<h1>Typing Secure Information Flow in JavaScript</h1>
+		<div id="main">
+			<h2>Input:</h2>
+			<textarea id="prog_input">//Enter here your JavaScript input program. 
+            </textarea>
+            <br />
+            <h2>Types of Global Variables:</h2>
+			<textarea id="global_vars_types">//Enter here the types of all global variables. 
+			</textarea>
+			<br />
+			<h2>Property Set Annotations:</h2>
+			<textarea id="prop_annotations">//The sets of property names that annotate property assignments, method calls, and property lookups. These sets must appear in the order in which they appear in the code.
+			</textarea>
+			<br />
+			<h2>Types of Function Literals:</h2>
+			<textarea id="lit_annotations">//Enter here the types of the function literals. Types must appear in the order in which they appear in the code.  
+			</textarea>
+			<br /> 	 	
+			<button id="type_btn">Type Program</button>
+			<br />
+			<h2>Output:</h2>
+			<textarea id="prog_output">//the transformed program is written here 
+            </textarea>
+            <br />
+		</div>
+		
+		<div id="examples">
+		<h2> Examples:</h2>
+			<ul>
+		    </ul>
+		</div>
+		
+		<div id="examples_code">
+		   <div id="ex1">
+		      <span class="prog_input">h = l</span>
+              <span class="global_vars_types">l: PRIM^{0}&#10;h: PRIM^{5}&#10;</span>
+		      <span class="prop_annotations"></span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex2">
+		      <span class="prog_input">l = h</span>
+              <span class="global_vars_types">l: PRIM^{0}&#10;h: PRIM^{5}&#10;</span>
+		      <span class="prop_annotations"></span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex3">
+		      <span class="prog_input">l = o[y];</span>
+              <span class="global_vars_types">l: PRIM^{0}&#10;y: PRIM^{0}&#10;o: OBJ&lt;__k&gt;&lt;p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}&gt;&lt;0, PRIM^{0}&gt;^{0}&#10;</span>
+		      <span class="prop_annotations">{p1}&#10;</span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex4">
+		      <span class="prog_input">l = o[y];</span>
+              <span class="global_vars_types">l: PRIM^{0}&#10;y: PRIM^{0}&#10;o: OBJ&lt;__k&gt;&lt;p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}&gt;&lt;0, PRIM^{1}&gt;^{0}&#10;</span>
+		      <span class="prop_annotations">{p2}&#10;</span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex5">
+		      <span class="prog_input">l = y in o;</span>
+              <span class="global_vars_types">l: PRIM^{0}&#10;y: PRIM^{0}&#10;o: OBJ&lt;__k&gt;&lt;p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}&gt;&lt;0, PRIM^{1}&gt;^{0}&#10;</span>
+		      <span class="prop_annotations">&lt;STR&gt;&#10;</span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex6">
+		      <span class="prog_input">l = y in o;</span>
+              <span class="global_vars_types">l: PRIM^{0}&#10;y: PRIM^{0}&#10;o: OBJ&lt;__k&gt;&lt;p1^{1}: PRIM^{3}, p2^{0}: PRIM^{0}&gt;&lt;0, PRIM^{1}&gt;^{0}&#10;</span>
+		      <span class="prop_annotations">&lt;STR&gt;&#10;</span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex7">
+		      <span class="prog_input">l1 = l0 + h;</span>
+              <span class="global_vars_types">l0: PRIM^{0}&#10;l1: PRIM^{0}&#10;h: PRIM^{1}&#10;</span>
+		      <span class="prop_annotations"></span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex7">
+		      <span class="prog_input">l2 = l0 + l1;</span>
+              <span class="global_vars_types">l0: PRIM^{0}&#10;l1: PRIM^{0}&#10;l2: PRIM^{0}&#10;</span>
+		      <span class="prop_annotations"></span>
+		      <span class="lit_annotations"></span>
+		   </div>
+		   
+		   <div id="ex7">
+		      <span class="prog_input">o = {}; o[y] = l</span>
+              <span class="global_vars_types">o: OBJ&lt;__k&gt;&lt;p1^{1}: PRIM^{3}, p2^{0}: PRIM^{0}&gt;&lt;0, PRIM^{1}&gt;^{0}&#10;</span>
+		      <span class="prop_annotations"></span>
+		      <span class="lit_annotations">o: OBJ&lt;__k&gt;&lt;p1^{1}: PRIM^{3}, p2^{0}: PRIM^{0}&gt;&lt;0, PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+	    </div>
+	    
+	    <div id="qunit"> </div>
+		<div id="qunit-fixture"> </div>
+		<script src="srcs/js/libs/qunit-git.js"></script>
+	</body>
+</html>

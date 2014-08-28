@@ -1,0 +1,201 @@
+\documentclass{article}
+\usepackage[latin1]{inputenc}
+\usepackage[USenglish]{babel}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath,amssymb}
+
+\title{WorkSheet 2 - DOM Scripting}
+
+\date{\today}
+
+\newcommand{\jskeyword}[1]{\textbf{#1}}
+\newcommand{\jsfunction}[1]{\textbf{#1}}
+\newcommand{\jsobject}[1]{\textbf{#1}}
+\newcommand{\jsvar}[1]{\textbf{#1}}
+\newcommand{\concept}[1]{\textit{#1}}
+\newcommand{\jsprop}[1]{\textbf{#1}}
+\newcommand{\jsmethod}[1]{\textbf{#1}}
+\newcommand{\jsinlinecode}[1]{#1}
+\newcommand{\jsnonterminal}[1]{#1}
+\newcommand{\myemph}[1]{\textit{#1}}
+
+\newtheorem{ex}{Exercise}[section]
+
+\begin{document}
+
+\maketitle 
+
+\section{Dom Scripting}
+
+\begin{ex}
+Write a function that receives as input a node and a node type 
+and outputs the number of its children that correspond to the given type. 
+\end{ex}
+
+\begin{ex}
+Write a function that receives as input a node and outputs 
+an array with all the strings that occur within it as \textit{Text Nodes}. 
+\end{ex}
+
+\begin{ex}
+Write a function that adds to end of the 
+node given as its first input $n$ empty divs where $n$ is the number of originally existing divs. 
+\end{ex}
+
+\begin{ex}
+Write a function that receives as input a document object, 
+a list of indexes $i_1, ..., i_n$ and removes from the document all the forms $i_1, i_2, ..., i_n$. 
+\end{ex}
+
+\begin{ex}
+Write a function that receives as input a document object, 
+a list of indexes $i_1, ..., i_n$ and removes from the document the forms $i_1, i_2, ..., i_n$. 
+\end{ex}
+
+\begin{ex}
+Write a function that receives an Element node and reverses the order of its children. (Hint: 
+use a DocumentFragment Node). 
+\end{ex}
+
+
+\begin{ex}
+Using the original event model, create an htlm page with a single 
+button $b1$ and a script that alerts "Hello World" the first 30 times the button is clicked. 
+\end{ex}
+
+\begin{ex}
+Repeat the previous exercise, this time using $addEventListener$
+and $removeEventListener$.  
+\end{ex}
+
+
+\section{jQuery}
+
+
+\newcommand{\tagh}[1]{\langle#1\rangle}
+\begin{ex}
+For each of the following cases write the appropriate selector: 
+\begin{enumerate}
+ \item All $\tagh{li}$ that are direct children of an $\tagh{ol}$
+ \item All the direct descendants of the element whose id is \#output
+ \item All $\tagh{p}$ elements that come immediately after $\tagh{h1}$ inside a div.note
+ \item All headings $\tagh{h1}$, $\tagh{h2}$, $\tagh{h3}$, $\tagh{h4}$, $\tagh{h5}$ and $\tagh{h6}$  
+\end{enumerate} 
+\end{ex}
+
+\begin{ex}
+Using the jQuery library, rewrite the following JavaScript programs:
+\begin{enumerate}
+  \item P1: 
+  \begin{verbatim}
+     var elements = document.getElementByClassName("foo"); 
+     for(var i=0; i<elements.length; i++) {
+        elements[i].className += "selected";  
+     } 
+  \end{verbatim}
+  \item P2: 
+  \begin{verbatim}
+     var element = document.getElementById("wem"); 
+  \end{verbatim}
+  \item P3: 
+  \begin{verbatim}
+     var elements = document.getElementByClassName("bar"); 
+  \end{verbatim}  
+  \item P4: 
+  \begin{verbatim}
+     var elements = document.getElementByTagName("p"); 
+  \end{verbatim}  
+  \item P5: 
+  \begin{verbatim}
+     var elements = document.getElementByTagName("p"); 
+  \end{verbatim}
+\end{enumerate}
+\end{ex}
+
+\begin{ex}
+For each of the following cases write the corresponding JS program (using the 
+jQuery library): 
+\begin{enumerate}
+  \item Select the descendants of the element whose id is 'bar' that are of class 
+        'foo' 
+  \item Select all inputs that have an attribute 'name' with value 'username'
+\end{enumerate}
+\end{ex}
+
+\begin{ex}
+For each of the following cases write the corresponding JS program (using the 
+jQuery library): 
+\begin{enumerate}
+   \item Add the letter Z to the beginning of each heading $\tagh{h1}$
+   \item Replace $\tagh{hr}$ tags with $\tagh{br}$ tags
+   \item Add a paragraph with an arbitrary string before the beggining of each $\tagh{h1}$
+\end{enumerate}
+\end{ex}
+
+\begin{ex}
+Write a script that adds a new div to the current document that contains  
+a copy of every link in the document. 
+\end{ex}
+
+\begin{ex}
+$\phantom{xxx}$
+\begin{enumerate}
+ \item Write a script that adds a new div to the current document (called index) 
+       where it lists as normal strings the text content of the $\tagh{h1}$ elements 
+       that occur in the document.
+ \item Modify the previous list so that each item in the list is a link, 
+       that when clicked, redirects you to the appropriate part of the document
+       (that is, the part of the document where the corresponding heading 
+       occurs).  
+\end{enumerate} 
+\end{ex}
+
+\begin{ex} 
+Write a program that deregisters all the events that were registered in any of the 
+document elements. You may assume that these events were registered using the jQuery 
+bind() method.  
+\end{ex}
+
+\begin{ex} 
+Write an html page with two buttons: $\tagh{b1}$ and $\tagh{b2}$. When $\tagh{b2}$
+is clicked, it should alert the string "b2 was clicked". When $\tagh{b1}$ is clicked, 
+it should alert "b1 was clicked" and trigger all events registerd on $\tagh{b2}$. 
+\end{ex}
+
+\section{Performance}
+
+\begin{ex}
+Rewrite the following JS function in order to increase performance. 
+\begin{verbatim}
+function initUI() { 
+  var bd = document.body, 
+      links = document.getElementByTagName("a"); 
+      i=0; 
+  while(i<links.length){
+     update(links[i++]); 
+  }
+  document.getElementById("go-btn").onclick = function() { 
+     start(); 
+  };
+  bd.className = "active";  
+}
+\end{verbatim}
+\end{ex}
+
+
+\begin{ex}
+\begin{enumerate}
+  \item Implement a function that takes a function f as an argument and 
+        returns a new version of that function that chaches results.  
+\end{enumerate}
+\end{ex}
+
+
+
+
+\end{document}
+
+
+
+$(document.body).append("<div id="x"><h1>Links</h1></div>");
+$("a").clone().appendTo("#x");

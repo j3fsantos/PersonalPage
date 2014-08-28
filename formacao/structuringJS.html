@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title>Structuring your JavaScript Programs</title>
+	
+	<meta name="description" content="Introduction to JavaScript">
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Core and extension CSS files -->
+	<link rel="stylesheet" href="deck.js/core/deck.core.css">
+	<link rel="stylesheet" href="deck.js/extensions/goto/deck.goto.css">
+	<link rel="stylesheet" href="deck.js/extensions/menu/deck.menu.css">
+	<link rel="stylesheet" href="deck.js/extensions/navigation/deck.navigation.css">
+	<link rel="stylesheet" href="deck.js/extensions/status/deck.status.css">
+	<link rel="stylesheet" href="deck.js/extensions/hash/deck.hash.css">
+
+	<!-- include code mirror default css and the theme you want. -->
+	<link rel="stylesheet" href="deck.codemirror.css">
+	<link rel="stylesheet" href="themes/default.css">
+
+	<!-- Theme CSS files (menu swaps these out) -->
+	<link rel="stylesheet" id="transition-theme-link" href="deck.js/themes/transition/horizontal-slide.css">
+	
+	<link rel="stylesheet" href="introduction.css">	
+	
+	<!-- Tooltipster CSS theme --> 
+	<link rel="stylesheet" type="text/css" href="tooltipster/css/tooltipster.css" />
+	
+	<!-- My style -->
+	<style type="text/css">
+            .myCodeDiv {
+	        font-size: xx-large; 
+		margin: 10px; 
+		background-color: #C2D6D6;  
+            }
+	    
+	    .myCodeSpan {
+	        font-size: xx-large; 
+	    }
+	</style> 
+	
+	<script src="modernizr.custom.js"></script>
+</head>
+
+<body>
+	<article class="deck-container">
+	
+	<section class="slide" id="js-data-types">
+	<h1>Views and Templating</h1>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Views and Templating</h2>
+	<h3>Using templates in JavaScript:</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var object = {
+   url: 'http://example.com', 
+   getName: function(){return 'Trevor';}
+}
+var template = '<li><a href='${url}'>${getName()}</a></li>'; 
+var element = jQuery.tmpl(template, object); 
+$('body').append(element); 
+</textarea></div> 	
+    <br /> 
+    <h3>More complex templates:</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>{{if url}}
+   ${url}
+ {{/if}}
+</textarea></div> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>{{if messages.length}}
+   <!-- Display messages --> 
+ {{else}}
+    <p>Sorry, there are no messages </p> 
+ {{/if}}
+</textarea></div>
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+><ul>
+  {{each messages}}
+     <li>${$index +1}: <em>${$value}</em></li>
+  {{/each}}
+ </ul>  
+</textarea></div>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Where to define the templates?</h2>
+	<h3>In the page...</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+><script type="text/x-jquery-tmpl" id="someTemplate">
+  <span>${getName()}</span> 
+</script>
+
+<script> 
+  var data = {
+    getName: function(){ return "Bob"}
+  }; 
+  var element = $("#someTemplate").tmpl(data);
+  element.appendTo($("body"));   
+</script> 
+</textarea></div> 	
+	</section> 
+
+	<section class="slide" id="js-data-types">
+	<h1>The Backbone Library</h1>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>The Backbone Library</h2>
+	<h3>GOAL: Structure your javascript applications using the MVC pattern</h3> 
+	<br /> 
+	<img src="mvc.jpg" />
+	</section> 
+	
+    <section class="slide" id="js-data-types"> 
+	<h2>Specifying Models</h2>
+	<h3>Building Models</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var User = Backbone.Model.extend({ 
+   initialize: function() { 
+      ...
+   }, 
+   // more instance properties
+}, {
+   // class properties
+}); 
+</textarea></div> 
+	<h3><em>initialize()</em> is called each time the model is instantiated</h3> 	
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Building Models - Getters and Setters</h2>
+	<h3>Specifying getters and setters</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var User = Backbone.Model.extend({ 
+   initialize: function(name){
+      this.set({name: name});    
+   }
+});  
+var user1 = new User("Gil Semedo"); 
+var user2 = new User(); 
+user2.set({name: "Marina Mota"}); 
+var name = user1.get("name"); 
+</textarea></div>	
+    <br /> 
+	<h3>Specifying default values: <em>defaults</em></h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var User = Backbone.Model.extend({
+   defaults: {
+      name: "no name"
+   }   
+}); 
+</textarea></div> 	
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h2>Building Models - Validation</h2>
+	<h3>Validate an instance's attributes by using the <em>validate()</em> function</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var User = Backbone.Model.extend({
+   validate: function(atts){
+      if(!atts.email || atts.email.length &lt; 3){
+         return "an email must have at least 3 chars";  	  
+	  }	  
+   }    
+}); 
+</textarea></div> 	
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Collections</h2>
+	<h3>Arrays of model instances are stored in collections</h3> 
+	<h3>You can specify the model type: </h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var Users = Backbone.Collection.extend({ 
+  model: User
+}); 
+</textarea></div>
+    <br />  	
+    <h3>Instantiating a collection</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var users = new Users([{name: "Jose Santos"}, {name: "Hermengarda Henriques"}]); 
+</textarea></div>	
+    <br /> 
+	<h3>Populating a collection: <em>add()</em></h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>users.add({name: "Jose Santos"});
+users.add([{name: "Jose Santos"}, {name: "Hermengarda Henriques"}]);   
+</textarea></div>	
+	</section> 
+
+	<section class="slide" id="js-data-types">
+	<h2>Searching for models in collections</h2>
+	<h3>Two kinds of ids: </h3>
+    <ul> 
+	   <li><h3><em>id: </em> explicitly set by you</h3></li> 
+	   <li><h3><em>cid: </em> automatically set by the collection</h3></li> 
+    </ul>	
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var user = users.getByCid('cid1'); 
+var user = user.get('uid1'); 
+</textarea></div> 	
+	</section> 
+
+	
+	<section class="slide" id="js-data-types">
+	<h2>Register Events on Collections</h2>
+	<h3>You can register events on collections:</h3> 
+	<ul> 
+	   <li><h3><em>add:</em> an instance was added to the collection</h3></li> 
+	   <li><h3><em>remove:</em> an instance was removed from the collection</h3></li>
+	   <li><h3><em>change:</em> an instance was removed from the collection</h3></li>
+	</ul> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>users.bind("add", function(user){ 
+  // a record was added
+});   
+
+users.bind("remove", function(user){ 
+  // a record was removed
+});
+
+users.bind("change", function(user){ 
+  // a record was changed
+});
+</textarea></div>		
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>V for Views</h2>
+	<h3><em>View:</em> logical chunk of UI, responsible fro the contents of a single DOM</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var userView = Backbone.View.extend({
+   initialize: function() { 
+      // initializing a view
+   }, 
+   render: function() { 
+      // rendering a view
+   }   
+}); 
+</textarea></div> 
+    <br /> 
+	<h3>Two special methods: <em>initialize()</em> and <em>render()</em></h3>
+	<h3>Instantiating a view</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var uv1 = new userView(); 
+</textarea></div> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Binding Views to the DOM</h2>
+	<h3>How to bind a view to the dom? tagName, className, id, el</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var userView1 = Backbone.View.extend({
+   el: $("#userDisplay")  
+}); 	
+
+var userView2 = Backbone.View.extend({
+   tagName: "span", 
+   className: "users"    
+});
+</textarea></div> 
+    <br /> 
+	<h3>When to bind a view to the model? </h3> 
+	<ul> 
+	   <li><h3>When creating the View</h3></li>
+       <li><h3>When instantiating an instance of the view</h3></li> 	   
+	</ul> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var userView = Backbone.View.extend({
+   el: $("#userDisplay");  
+}); 
+
+var userView = new userView({
+  id: "#userDisplay";  
+}); 		
+</textarea></div>	
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h2>Rendering Views</h2>
+	<h3>Binding a view to a model: <em>model</em></h3>
+    <h3>Binding a view to a template: <em>template</em></h3>
+    <h3>Rendering views: <em>render</em></h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var uv1 = new userView({ 
+   model: users.get('user1')
+}); 
+</textarea></div> 
+    <br /> 
+	<h3>Specifying the rendering method</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var userView = Backbone.View.extend({ 
+   render: function() { 
+     $(this.el).html(this.template.tmpl(this.model.toJSON()))
+   } 
+}); 
+</textarea></div>	
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Registering Event Listeners</h2>
+	<h3>Processing ui events</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var UserView = Backbone.View.extend({
+   events: { 
+     "change input[type=checkbox]": "toggleDone", 
+     "click .destroy": "clear" 	 
+   }, 
+   toggleDone: function(e) {  /*...*/ }, 
+   clear: function(e){ /* ... */ }
+}); 
+</textarea></div>
+    <br /> 
+	<h3>When event handlers are triggered, they are invoked on the view object itself</h3>  
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Registering Event Listeners</h2>
+	<h3>Processing model events</h3> 
+	<h3>When the model <em>changes</em> the view must reflect these changes</em> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var UserView = Backbone.View.extend({
+	initialize: function() {
+       _bindAll(this, 'render', 'remove'); 
+       this.model.bind('change', this.render); 
+       this.model.bind('remove', this.remove);  	   
+	}, 
+	remove: function() { 
+	  /* ... */ 
+	}, 
+	render: function() {
+     /* ...*/	
+	}
+}); 
+</textarea></div>
+	</section> 
+
+	<section class="slide" id="js-data-types"> 
+	<h1>Drag and Drop</h1>
+	</section>
+
+	<section class="slide" id="js-data-types"> 
+	<h2>Dragging</h2>
+    <h3>Tom make an element draggable: set <em>draggable</em> to true</h3> 
+<div><textarea id="code" name="code" class="code" mode="text/html" style="display: none;" runnable="true"
+><div id="dragme" draggable="true">Drag me!<div>  
+</textarea></div>
+    <h3>Listen to the <em>dragstart</em> event</h3> 
+	<h3>Save the data you need with <em>setData</em></h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var element = $("#dragme"); 
+element.bind("dragstart", function(event){ 
+   event = event.originalEvent;  // We don't want jQuery abstraction
+   event.dataTransfer.effectAllowed = "move"; 
+   event.dataTransfer.setData("text/plain", $(this).text()); 
+   event.dataTransfer.setData("text/html", $(this).html());
+   event.dataTransfer.setDragImage("images/drag.png", -10,-10) 
+});   
+</textarea></div> 
+    </section>
+
+	<section class="slide" id="js-data-types"> 
+	<h2>Dropping</h2>
+	<h3>For the drop event to fire, you have to cancel the defaults of both the 
+	    <em>dragover</em> and the <em>dragenter</em> events. 
+	</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var element = $("#dropzone"); 
+element.bind("dragenter", function(e) { 
+  e.stopPropagation(); 
+  e.preventDefault(); 
+});   
+element.bind("dragover", function(e) {
+  e.originalEvent.dataTransfer.dropEffect = "copy";   
+  e.stopPropagation(); 
+  e.preventDefault(); 
+}); 
+</textarea></div> 
+    <br /> 
+    <h3>Handle the drop event</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>element.bind("drop", function(e) { 
+  e.stopPropagation();
+  e.preventDefault(); 
+  e = e.originalEvent; 
+  
+  var text = e.dataTransfer.getData("Text");    
+  // e.dataTransfer.types -> array with types
+</textarea></div> 	
+    </section>
+	
+	<a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+	<a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+		<p class="deck-status">
+			<span class="deck-status-current"></span>
+			/
+			<span class="deck-status-total"></span>
+		</p>
+
+		<form action="." method="get" class="goto-form">
+			<label for="goto-slide">Go to slide:</label>
+			<input type="number" name="slidenum" id="goto-slide">
+			<input type="submit" value="Go">
+		</form>
+
+		<a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+	</article>
+
+	
+	<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>-->
+	<script src="jquery-1.9.0.min.js"></script>
+	<script type="text/javascript" src="tooltipster/js/jquery.tooltipster.min.js"></script>
+	
+	<!-- Deck Core and extensions -->
+	<script src="deck.js/core/deck.core.js"></script>
+	<script src="deck.js/extensions/menu/deck.menu.js"></script>
+	<script src="deck.js/extensions/goto/deck.goto.js"></script>
+	<script src="deck.js/extensions/status/deck.status.js"></script>
+	<script src="deck.js/extensions/navigation/deck.navigation.js"></script>
+	<script src="deck.js/extensions/hash/deck.hash.js"></script>
+  
+  <!-- include the base codemirror code. -->
+  <script src="codemirror.js"></script>
+	
+	<!-- include the code syntax you want to highlight -->
+	<!-- javascript -->
+  <script src="mode/javascript/javascript.js"></script>
+
+  <!-- html mode : note code miror requires xml, css and javasript modes for html rendering -->
+  <script src="mode/xml/xml.js"></script>
+  <script src="mode/css/css.js"></script>
+  <script src="mode/htmlmixed/htmlmixed.js"></script>
+  
+	<script src="deck.codemirror.js"></script>
+	
+	
+	<!-- Stuff specific to this page -->
+	<script src="introduction.js"></script>
+	
+	<script>
+        $(document).ready(function() {
+            $('.tooltip').tooltipster();
+	    var x = $('.myCodeSpan'); 
+	    x.css('font-size', 'x-large');
+	    x.css('font-weight', 'bold');
+		window.action = 'eat';
+		window.eatIt = function(){ alert('eat'); }; 
+		window.drinkIt = function() { alert('drink'); };
+		window.getObject = function() { return {} }; 
+        });
+       </script>
+   
+
+</body>
+</html>
+

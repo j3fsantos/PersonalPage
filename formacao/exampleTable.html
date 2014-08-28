@@ -1,0 +1,17 @@
+<html> 
+  <head> 
+    <script> 
+		setTimeout(function(){alert("Hello")},3000); 
+		var f = function() { 
+			alert('f is executing...'); 
+			if(confirm('do you want to cancel this annoying message?')){ 
+				clearInterval(arguments.callee.id); 
+			} 
+		} 
+		f.id = setInterval(f, 2000); 
+	</script>
+  </head> 
+  <body> 
+    <h1>DOM scripting examples</h1> 
+  </body>  
+</html> 

@@ -1,0 +1,164 @@
+\documentclass{article}
+\usepackage[latin1]{inputenc}
+\usepackage[USenglish]{babel}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath,amssymb}
+
+\title{Frameworks, Performance and HTML5}
+
+\date{\today}
+
+\newcommand{\jskeyword}[1]{\textbf{#1}}
+\newcommand{\jsfunction}[1]{\textbf{#1}}
+\newcommand{\jsobject}[1]{\textbf{#1}}
+\newcommand{\jsvar}[1]{\textbf{#1}}
+\newcommand{\concept}[1]{\textit{#1}}
+\newcommand{\jsprop}[1]{\textbf{#1}}
+\newcommand{\jsmethod}[1]{\textbf{#1}}
+\newcommand{\jsinlinecode}[1]{#1}
+\newcommand{\jsnonterminal}[1]{#1}
+\newcommand{\myemph}[1]{\textit{#1}}
+
+\newtheorem{ex}{Exercise}[section]
+
+\begin{document}
+
+\section{Performance}
+
+\begin{ex}
+Rewrite the following JS function in order to increase performance. 
+\begin{verbatim}
+function initUI() { 
+  var bd = document.body, 
+      links = document.getElementByTagName("a"); 
+      i=0; 
+  while(i<links.length){
+     update(links[i++]); 
+  }
+  document.getElementById("go-btn").onclick = function() { 
+     start(); 
+  };
+  bd.className = "active";  
+}
+\end{verbatim}
+\end{ex}
+
+\begin{ex}
+Implement a function that takes a function as an argument and 
+returns a memoized version of that function, that is, a 
+version of that function that chaches results.  
+\end{ex}
+
+\begin{ex}
+Consider the following program:
+\begin{verbatim}
+function appendDataToElement(elm, data) { 
+  var a, li; 
+  for(var i=0, max=data.length; i&lt;max; i++){ 
+      a = document.createElement('a'); 
+	  a.href = data[i].url; 
+	  a.appendChild(document.createTextNode(data[i].name)); 
+	  li = document.createElement('li'); 
+	  li.appendChild(a); 
+	  elm.appendChild(li); 
+  }
+}  
+\end{verbatim} 
+Suppose this function is used in the following way: 
+\begin{verbatim}
+var ul = document.getElementById('myList'); 
+appendDataToElement(ul, data);  
+\end{verbatim}
+Change this program in order to batch DOM changes. Apply both the techniques: 
+\begin{itemize}
+   \item Hide the element before changing it
+   \item Create a document fragment
+\end{itemize}
+\end{ex}
+
+\begin{ex}
+Write a script that processes all links in the page in such a way that 
+every time the link is clicked, the script asks the user if he is sure 
+that he wants to open the link and whether he wants to open the link 
+in a new window, or in the current one. IMPORTANT: Use the delegate 
+function of the jQuery library. 
+\end{ex}
+
+\section{Templating} 
+
+\begin{ex}
+Suppose a person object has the following form: 
+\begin{verbatim}
+ var p1 = {
+     firstName: 'carla', 
+     lastName: 'sousa',
+     age: 25, 
+     maritalStatus: 'single', 
+     favoriteBooks: ['lord of the rings', 'wuthering heights'], 
+     favoriteColor: 'red'
+}
+\end{verbatim}
+Write a script that, receiving as input an array of people, creates 
+a list containing a short description of every person in the array in 
+one pre-existing div with id divList. The short description of a 
+person is a link whose text corresponds to: \textbf{lastName, firstName}. 
+When clicking on the link, a long description of the person 
+should be displayed in one pre-existing div with id divMain. The long 
+description of a Person should be displayed as follows:
+\begin{verbatim} 
+<div style="background-color: favoriteColor">
+  <table>
+    <tr><th>First Name:                </th><td>Carla            </td></tr> 
+    <tr><th>Last Name:                 </th><td>Sousa            </td></tr>
+    <tr><th>Age:                       </th><td>25               </td></tr>
+    <tr><th>Marital Status:            </th><td>Single           </td></tr>
+    <tr><th rowspan="2">Favorite Books:</th><td>Lord of the rings</td></tr> 
+    <tr>                                    <td>Wuthering Heights</td></tr>
+  </table>
+</div> 
+\end{verbatim}
+\end{ex}
+
+\begin{ex}
+Use QUnit to write some simple tests to the previous example.
+\end{ex}
+
+
+\section{The Spine Library} 
+
+\begin{ex}
+Using Spine, Implement the following class hierarchy using the Spine library: 
+\begin{verbatim}
+   Child, Adult << Person << Animal 
+   Dog << Animal   
+   
+   Child.saySomething() { super.saySomehting(); alert('I\'m a child!'); }  
+   Adult.saySomething() { super.saySomething(); alert('I\'m an adult!'); }
+   
+   Person.saySomething() { alert('I\'m'+Person.name); } 
+   Person.makeASound() { alert('I can speak'); } 
+   Dog.makeASound() { alert('ao ao '); }
+   
+   Animal.breathe() { alert('this animal is breathing'); }   
+\end{verbatim} 
+Test your class hierarchy. 
+\end{ex} 
+
+
+
+
+\end{document}
+
+
+var ul = document.getElementById('myList'); 
+appendDataToElement(ul, data); 
+
+
+var ul = document.getElementById('myList'); 
+ul.style.display = 'none'; 
+appendDataToElement(ul, data); 
+ul.style.display = 'block'; 
+
+var fragment = document.createDocumentFragment(); 
+appendDataToElement(fragment, data); 
+document.getElementById('myList').appendChild(fragment); 

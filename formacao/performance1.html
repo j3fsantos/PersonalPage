@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title>JavaScript Performance</title>
+	
+	<meta name="description" content="Introduction to JavaScript">
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Core and extension CSS files -->
+	<link rel="stylesheet" href="deck.js/core/deck.core.css">
+	<link rel="stylesheet" href="deck.js/extensions/goto/deck.goto.css">
+	<link rel="stylesheet" href="deck.js/extensions/menu/deck.menu.css">
+	<link rel="stylesheet" href="deck.js/extensions/navigation/deck.navigation.css">
+	<link rel="stylesheet" href="deck.js/extensions/status/deck.status.css">
+	<link rel="stylesheet" href="deck.js/extensions/hash/deck.hash.css">
+
+	<!-- include code mirror default css and the theme you want. -->
+	<link rel="stylesheet" href="deck.codemirror.css">
+	<link rel="stylesheet" href="themes/default.css">
+
+	<!-- Theme CSS files (menu swaps these out) -->
+	<link rel="stylesheet" id="transition-theme-link" href="deck.js/themes/transition/horizontal-slide.css">
+	
+	<link rel="stylesheet" href="introduction.css">	
+	
+	<!-- Tooltipster CSS theme --> 
+	<link rel="stylesheet" type="text/css" href="tooltipster/css/tooltipster.css" />
+	
+	<!-- My style -->
+	<style type="text/css">
+            .myCodeDiv {
+	        font-size: xx-large; 
+		margin: 10px; 
+		background-color: #C2D6D6;  
+            }
+	    
+	    .myCodeSpan {
+	        font-size: xx-large; 
+	    }
+	</style> 
+	
+	<script src="modernizr.custom.js"></script>
+</head>
+
+<body>
+	<article class="deck-container">
+	
+	<section class="slide" id="js-data-types">
+	<h1>JavaScript Performance</h1>
+	</section>
+
+	<section class="slide" id="js-data-types">
+	<h2>Loading and Execution</h2>
+	
+	<h3>Most browsers use a single process for both UI updates and JavaScript. So, 
+	    <em>only one can happen at any given moment</em> </h3>
+		
+    <br />
+	
+	<h3>The longer JavaScript takes to execute, the longer it takes before 
+	    the browser is free to respond </h3> 
+		
+	<br /> 
+	
+	<div><textarea id="code" name="code" class="text/html" mode="javascript" style="display: none;" runnable="true"
+><html> 
+  <head>
+     <title>Script Example</title> 
+  </head> 
+  <body> 
+    <p> 
+	<script type="text/javascript">
+	   document.write("The date is: "+(new Date()).toDateString()); 
+	</script>
+	</p>
+  </body> 
+</html></textarea></div>
+    <br /> 
+    <h3>The browser needs to STOP rendering the page and parse and execute the script</h3>	
+	</section>
+
+
+
+	
+	<section class="slide" id="js-data-types">
+	<h2>Script Positioning</h2>
+	
+	<h3>Where to place the &lt;script&gt; tags? Traditionally, they appear 
+        in the &lt;head&gt; element</h3>
+	
+	<div><textarea id="code" name="text/html" class="code" mode="javascript" style="display: none;" runnable="true"
+><html> 
+  <head>
+     <title>Script Example</title>
+	 <script type="text/javascript" src="file1.js"></script> 
+	 <script type="text/javascript" src="file2.js"></script>
+  </head> 
+  <body> 
+    <p>Hello World!</p> 
+  </body> 
+</html></textarea></div>
+	<br /> 
+	<h3>However... Browsers do not start rendering anything on the page until the 
+	    opening &lt;body&gt; tag is encountered</h3> 
+
+	<br /> 
+		
+	<h3>Place youru scripts at the bottom of the &lt;body&gt; element </h3>	
+	
+	<div><textarea id="code" name="text/html" class="code" mode="javascript" style="display: none;" runnable="true"
+><html> 
+  <head>
+     <title>Script Example</title>
+	  </head> 
+  <body> 
+    <p>Hello World!</p> 
+	 <script type="text/javascript" src="file1.js"></script> 
+	 <script type="text/javascript" src="file2.js"></script>
+  </body> 
+</html></textarea></div>
+    </section> 
+
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Deferred Scripts</h2>
+    <h3>Use the <em>defer</em> attribute</h3>
+	<div><textarea id="code" name="code" class="code" mode="text/html" style="display: none;" runnable="true"
+><html> 
+  <head>
+     <title>Script Defer Example</title>
+	</head> 
+  <body> 
+    <script defer>
+       alert("defer"); 	
+	</script>
+	
+	<script>
+       alert("script"); 	
+	</script>
+	
+	<script>
+	   window.onload = function() { 
+	      alert("load"); 
+	   }
+	</script>
+  </body> 
+</html></textarea></div>
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Dynamic Script Elements</h2>
+	<h3>You can download your scripts programmatically</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var script = document.createElement("script"); 
+script.type = "text/javascript"; 
+script.src = "file1.js"; 
+script.onload = function() {
+  alert("the script file1.js has finished downloading"); 
+}; 
+document.getElementByTagName("head")[0].appendChild(script);
+    </textarea></div> 
+	<h3>Downloading starts as soon as the file is added to the page</h3> 
+    </section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Data Access - 1</h2>
+	<h3>Literal values and local variables can be accessed very quickly. Array items and object 
+	    members take longer</h3>
+    <br /> 
+    <h3>Local variables are faster to access than variables defined in external scopes. Global 
+        variables are the slowest to access</h3> 
+    <h3>Why?</h3> 
+    <br /> 
+    <h3>The <em>catch</em> clause of the try/catch statement and the <em>with</em> statement 
+        augment the scope chain. Browsers are not optimized to handle them. </h3> 	
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Strings and Performance</h2>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>str += "one"+"two";
+    </textarea></div>
+    <h3>This code implies 4 steps</h3> 
+	<ul>  
+	  <li><h3>A temporary string is created in memory</h3></li> 
+      <li><h3>The concatenated value "onetwo" is assigned to the temporary string</h3></li> 
+      <li><h3>The temporary string is concatenated with the currrent value of str</h3></li> 
+      <li><h3>The result is assigned to str</h3></li> 	  
+	</ul> 
+	<h3>Instead:</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>str += "one"; 
+strs +="two";
+    </textarea></div>
+	<h3>What will we save with this?</h3> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>DOM scripting and Performance</h2>
+	<h3>IMPORTANT: DOM implementations and JS implementations are SEPARATE!</h3>
+	<br />  
+	<h3>So: Interact with DOM as little as possible during script execution</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function innerHtmlLoop1() { 
+   for(var count=0; count&lt; 1500; count++){ 
+      document.getElementById('b1').innerHtml += 'a';  
+   }
+}
+
+function innerHtmlLoop2() {
+   var str = ''; 
+   for(var count=0; count&lt; 1500; count++){ 
+      str += 'a';  
+   }
+   document.getElementById('b1').innerHtml += str; 
+}
+    </textarea></div>
+    </section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Repaints and Reflows</h2>
+	<h3>After downloading the page, the browser builds:</h3> 
+	<ul> 
+	   <li><h3>DOM tree: </h3>internal representation of the page</li>
+       <li><h3>Render tree: </h3>representation of how DOM nodes will be displayed</li>	   
+	</ul> 
+	<h3>When a DOM change affects the geometry of an element: the browser needs to 
+	    recalculate the geometry of all the elements that could have been afected 
+		by the change - <em>REFLOW</em>.</h3>
+    <br /> 
+    <h3>After the REFLOW, the browser needs to redraw the afected parts of the 
+	    screen in a process called REPAINT</h3> 
+    <br /> 
+    <h3>REPAINTS and REFLOWS are EXPENSIVE</h3> 		
+	</section>
+
+	
+	<section class="slide" id="js-data-types">
+	<h2>When does a reflow happen?</h2>
+	<ul> 
+	   <li><h3>Visible DOM elements are added or removed</h3></li>
+	   <li><h3>Elements change position</h3></li>
+	   <li><h3>Elements change size</h3></li>
+	   <li><h3>Content is changed</h3></li>
+	   <li><h3>Page renders initially</h3></li>
+	   <li><h3>Browser window is resized</h3></li>
+	</ul> 
+	</section> 
+
+	<section class="slide" id="js-data-types">
+	<h2>How to minimize Reflows and Repaints - 1</h2>
+	<h3>Normally the browser BATCHES reflows and repaints but some functions force the 
+        reflow: Be careful</h3>
+    <br /> 		
+    <h3>Advice: Never Request layout information while it's being changed</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var computed, tmp='', bodystyle=document.body.style; 
+if(document.body.currentStyle) {
+   computed = document.body.currentStyle; 
+} else { 
+    computed = document.defaultView.getComputedStyle(document.body,''); 
+}
+bodystyle.color = 'red';
+tmp =  computed.backgroundColor;
+bodystyle.color = 'white'; 
+tmp = computed.backgroundColor; 
+bodystyle.color = 'green'; 
+tmp = computed.backgroundAttachment; 	
+</textarea></div>  	
+    <br /> 
+    <h3>Write way to do it: </h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>bodystyle.color = 'red';
+bodystyle.color = 'white';
+bodystyle.color = 'green';
+tmp =  computed.backgroundColor;
+tmp = computed.backgroundColor;
+tmp = computed.backgroundAttachment;
+</textarea></div> 	
+	</section>
+
+	<section class="slide" id="js-data-types">
+	<h2>How to minimize Reflows and Repaints - 2</h2>
+	<h3>You should combine multiple DOM and style changes into a BATCH and apply them once</h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var el = document.getElementById('myId'); 
+el.style.borderLeft = '1px'; 
+el.style.borderRight = '2px'; 
+el.style.padding = '5px'
+</textarea></div>
+    <br /> 
+	<h3>Even more efficient:</h3>  
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var el = document.getElementById('myId');
+el.style.cssText = 'borderLeft: 1px, borderRight: 2px, padding: 5px';  
+</textarea></div>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Batching DOM changes - Strategies</h2>
+	<h3>A strategy in three steps:</h3> 
+	<ul>
+	   <li><h3>Take the element out of the document flow</h3></li> 
+	   <li><h3>Apply the changes</h3></li>
+	   <li><h3>Bring the element back to the document</h3></li>
+	</ul> 
+	<h3>How to take the element out of the document flow</h3> 
+	<ul>
+	   <li><h3>Hide the element, apply the changes and show it again</h3></li> 
+	   <li><h3>Use a document fragment to build a subtree outside the live DOM and 
+	       then copy it to the document</h3></li>
+    </ul> 
+    </section> 
+
+    <section class="slide" id="js-data-types">
+	<h2>Batching DOM changes - Exercise</h2>
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>function appendDataToElement(elm, data) { 
+  var a, li; 
+  for(var i=0, max=data.length; i&lt;max; i++){ 
+      a = document.createElement('a'); 
+	  a.href = data[i].url; 
+	  a.appendChild(document.createTextNode(data[i].name)); 
+	  li = document.createElement('li'); 
+	  li.appendChild(a); 
+	  elm.appendChild(li); 
+  }
+}
+
+var ul = document.getElementById('myList'); 
+appendDataToElement(ul, data); 
+</textarea></div>	
+   	</section> 
+		 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Optimizing Event Processing</h2>
+	<h3><em>Event Delegation:</em> use event delegation instead of storing events in 
+	    every node</h3>
+    <br />
+	<h3><em>Event Delegation:</em> attach only one handler on a wrapper element to 
+	    handle all events that are triggered on its children</h3> 
+    <br /> 
+	<h3>Systematizing:</h3>
+    <ul> 
+	   <li><h3>Use the event object to identify the source of the event: target</h3></li>
+	   <li><h3>Cancel the bubbling up  the document tree</h3></li>
+    </ul>  	
+	<h3>This can be done using jQuery: <em>delegate()</em></h3> 	
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>$("ul").delegate("li", "click", /*...*/); 
+</textarea></div>
+	</section> 
+	
+	
+	<a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+	<a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+		<p class="deck-status">
+			<span class="deck-status-current"></span>
+			/
+			<span class="deck-status-total"></span>
+		</p>
+
+		<form action="." method="get" class="goto-form">
+			<label for="goto-slide">Go to slide:</label>
+			<input type="number" name="slidenum" id="goto-slide">
+			<input type="submit" value="Go">
+		</form>
+
+		<a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+	</article>
+
+	
+	<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>-->
+	<script src="jquery-1.9.0.min.js"></script>
+	<script type="text/javascript" src="tooltipster/js/jquery.tooltipster.min.js"></script>
+	
+	<!-- Deck Core and extensions -->
+	<script src="deck.js/core/deck.core.js"></script>
+	<script src="deck.js/extensions/menu/deck.menu.js"></script>
+	<script src="deck.js/extensions/goto/deck.goto.js"></script>
+	<script src="deck.js/extensions/status/deck.status.js"></script>
+	<script src="deck.js/extensions/navigation/deck.navigation.js"></script>
+	<script src="deck.js/extensions/hash/deck.hash.js"></script>
+  
+  <!-- include the base codemirror code. -->
+  <script src="codemirror.js"></script>
+	
+	<!-- include the code syntax you want to highlight -->
+	<!-- javascript -->
+  <script src="mode/javascript/javascript.js"></script>
+
+  <!-- html mode : note code miror requires xml, css and javasript modes for html rendering -->
+  <script src="mode/xml/xml.js"></script>
+  <script src="mode/css/css.js"></script>
+  <script src="mode/htmlmixed/htmlmixed.js"></script>
+  
+	<script src="deck.codemirror.js"></script>
+	
+	
+	<!-- Stuff specific to this page -->
+	<script src="introduction.js"></script>
+	
+	<script>
+        $(document).ready(function() {
+            $('.tooltip').tooltipster();
+	    var x = $('.myCodeSpan'); 
+	    x.css('font-size', 'x-large');
+	    x.css('font-weight', 'bold');
+		window.action = 'eat';
+		window.eatIt = function(){ alert('eat'); }; 
+		window.drinkIt = function() { alert('drink'); };
+		window.getObject = function() { return {} }; 
+        });
+       </script>
+   
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

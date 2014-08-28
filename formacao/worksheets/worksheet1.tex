@@ -1,0 +1,272 @@
+\documentclass{article}
+\usepackage[latin1]{inputenc}
+\usepackage[USenglish]{babel}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath,amssymb}
+
+\title{WorkSheet 1 - JavaScript Fundamentals}
+
+\date{\today}
+
+\newcommand{\jskeyword}[1]{\textbf{#1}}
+\newcommand{\jsfunction}[1]{\textbf{#1}}
+\newcommand{\jsobject}[1]{\textbf{#1}}
+\newcommand{\jsvar}[1]{\textbf{#1}}
+\newcommand{\concept}[1]{\textit{#1}}
+\newcommand{\jsprop}[1]{\textbf{#1}}
+\newcommand{\jsmethod}[1]{\textbf{#1}}
+\newcommand{\jsinlinecode}[1]{#1}
+\newcommand{\jsnonterminal}[1]{#1}
+\newcommand{\myemph}[1]{\textit{#1}}
+
+\newtheorem{ex}{Exercise}[section]
+
+\begin{document}
+
+\maketitle 
+
+\section{Higher Order Functions}
+
+\textit{Filters, Cumulators and Transformers}
+
+\begin{ex}
+\label{filter:ex}
+Write a function $filter$ that receives as input an array $arr$ and a function $f$ and outputs 
+that same array without the elements for which $f$ evaluates to $false$. Remark: the algorithm 
+should be linear in the size of the array and you should not allocate a new array. \\
+Example: 
+\begin{verbatim}
+function pair(x) { 
+  return !(x%2); 
+}
+var arr = filter([1,3,4,6,8], pair) // [4,6,8] 
+\end{verbatim}    
+\end{ex}
+
+\begin{ex}
+Write a function $map$ that receives as input an array $arr$ and a function $f$ and outputs 
+that same array after applying function $f$ to each one of its elements. 
+Example:     
+\begin{verbatim}
+function f(x) { 
+  return x*x; 
+}
+var arr = map([1,3,4,6,8], f) // [1,9,16,36,64] 
+\end{verbatim} 
+\end{ex}
+
+\begin{ex}
+Consider the following function: 
+\begin{verbatim}
+var accumulator = function(arr, f, v) { 
+  for(var i=0, len=arr.length; i<len; i++) { 
+     v = f.call(null, v, arr[i]); 
+  }
+  return v; 
+} 
+\end{verbatim} 
+Example: 
+\begin{verbatim}
+function soma(x,y){
+  return x+y; 
+}
+var v = accumulator([1,3,4], soma, 0) // 8 
+\end{verbatim} 
+Without using the two previous functions, write a new function, $processor$, that is 
+simultaneously a filter, an accumulator and a transformer. First, it filters, then it transforms and finally applies the accumulator.
+$processor$ must have the following signature: 
+\begin{verbatim}
+processor(arr, filter, transformer, accumulator, v0)
+\end{verbatim} 
+Examples: 
+\begin{verbatim}
+var f1 = function() { 
+   return !(x%0); 
+}
+var f2 = function(x) { 
+   return x*x; 
+} 
+var f3 = function(x, y){
+   return x+y; 
+}
+processor([1,3,3,2,4,9], f1,f2,f3,0) // 20
+\end{verbatim} 
+Rewrite the previous three functions using the function $processor$.   
+\end{ex}
+
+\begin{ex}
+Like in exercise~\ref{filter:ex}, write a filter that instead of receiving as input 
+an array, receives as input an object.  
+\begin{verbatim}
+var obj1 = {p: 3, q: 2}; 
+var pair = function(x) { 
+	return !(x%2); 
+}; 
+var obj2 = filter(obj1, pair) //{q: 2} 
+\end{verbatim}
+\end{ex} 
+
+\begin{ex} 
+Using the functions developed in the previous exercises: 
+\begin{enumerate}
+   \item Write a function that receives as input an array of numbers and removes 
+         the odd values. 
+   \item Write a function that receives as input an array of numbers and computes 
+         the product of all the numbers in the array. 
+   \item Write a function that receives an array of numbers 
+         and outputs the maximum. 
+\end{enumerate}
+\end{ex} 
+
+
+\section{Objects and Prototypical Inheritance} 
+
+\begin{ex} 
+Implement the following class hierarchy: 
+\begin{verbatim}
+   Child, Adult << Person << Animal 
+   Dog << Animal   
+   
+   Child.saySomething() { super.saySomehting(); alert('I\'m a child!'); }  
+   Adult.saySomething() { super.saySomething(); alert('I\'m an adult!'); }
+   
+   Person.saySomething() { alert('I\'m'+Person.name); } 
+   Person.makeASound() { alert('I can speak'); } 
+   Dog.makeASound() { alert('ao ao '); }
+   
+   Animal.breathe() { alert('this animal is breathing'); }   
+\end{verbatim} 
+Test your class hierarchy using QUnit.  
+\end{ex} 
+
+\begin{ex}
+Write a function $f$ that receives an object $o$ as input and outputs a new 
+object $o'$ having $o$ as a prototype.  
+\end{ex} 
+
+\begin{ex}
+A publish/subscribe object is an object on which you can register and fire "events" 
+(in the context of this exercise, they shall be considered as strings).
+\begin{verbatim}
+o.subscribe('eventName', 'function', 'subscriber'); 
+o.publish('eventName');  
+\end{verbatim}   
+When you publish an event, all functions that subscribed it must be invoked on the 
+corresponding subscribers (receiving object $o$ as an argument).  
+\end{ex}
+
+
+\begin{ex}
+Write a function that receives a string as an argument, and outputs an object 
+that maps each word of the given string to the number of anagrams of that word that 
+occur in the original string. 
+Example: 
+\begin{verbatim}
+s = "o gato vestiu uma toga"
+countAnagrams(s) // {o : 0, gato: 1, vestiu: 0, uma: 0, toga: 1}
+\end{verbatim}
+\end{ex}
+
+
+\section{Closures} 
+
+\begin{ex} 
+Detect the problem in the following program: 
+\begin{verbatim}
+function openLinksInNewWindows() {
+   for (var i = 0; i < document.links.length; i++) {
+      document.links[i].onclick = function() {
+          window.open(document.links[i].href); 
+          return false;
+      }
+   }
+} 
+\end{verbatim} 
+Solve it without changing $document.links[i].href$.  
+\end{ex} 
+
+
+\begin{ex} 
+Taking advantage of JavaScript scoping rules, write a function $inspect$ that once
+invoked allows you to evaluate an arbitrary expression in the environment on which
+it was invoked. Use the $prompt()$ window method to interact with the user. 
+Example: 
+\begin{verbatim}
+ function f() {
+   var n = 0; 
+   inspect(...); 
+ } 
+ f(); 
+\end{verbatim}
+When inspects evaluates, the user should receive a prompt to enter an expression 
+that will be evaluated in the current scope. So, for example, if the user enters $n$, there
+should be an alert with 0.\\ 
+\noindent\textit{Hint:} Perhaps inspect() must receive an argument. 
+\end{ex} 
+
+
+\begin{ex} 
+Write a function $proxy$ that receives as input a function $f$ and an object $o$
+and outputs a new function $f'$ such that every time $f'$ is invoked, $f$ will be
+called on object $o$ ($o.f()$). Write an example of how this function can 
+help you avoiding the problems that can arise from scope confusions. 
+\end{ex}
+
+\begin{ex}
+Implement a function that takes a function as an argument and
+returns a \textit{memoized} version of that function, that is, a version of that function
+that \textit{chaches} results. The \textit{memoized} version of the original function
+should have an internal table and, when invoked on an argument, it should first check
+if the argument is in the table. If it is, it returns the value associated with the argument 
+immediately. If it is not, the function computes the result normally, stores it in the table, 
+and finally returns.   
+\end{ex}
+
+
+\end{document}
+
+
+function inspect(inspector, title) {
+var expression, result;
+while(true) {
+var message = "";
+if(title)
+message = title + "\n";
+if(expression)
+message += "\n" + expression + "==>" + result + "\n";
+else expression = "";
+message += "Enter an expression to evaluate: ";
+expression = prompt(message, expression);
+if(!expression) return;
+result = inspector(expression);
+}
+}
+
+function factorial(n) {
+var result;
+var n;
+var inspector = function($) {eval($)};
+inspect(inspector, "Entering factorial()");
+
+while(n>1) {
+result = result * n;
+n = n - 1;
+inspect(inspector, "factorial() loop");
+}
+inspect(inspector, "Exiting factorial()");
+return result;
+}
+
+
+
+function makeProperty(o, name, predicate) {
+var value;
+o["get" + name]= function() { return value; };
+o["set" + name]= function(v) {
+if(predicate && (!predicate(v))){
+string s = "cannot write that value in property";
+throw new Error(s+name);
+}
+else value = v;
+};
+}

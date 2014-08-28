@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title>DOM scripting</title>
+	
+	<meta name="description" content="Introduction to JavaScript">
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Core and extension CSS files -->
+	<link rel="stylesheet" href="deck.js/core/deck.core.css">
+	<link rel="stylesheet" href="deck.js/extensions/goto/deck.goto.css">
+	<link rel="stylesheet" href="deck.js/extensions/menu/deck.menu.css">
+	<link rel="stylesheet" href="deck.js/extensions/navigation/deck.navigation.css">
+	<link rel="stylesheet" href="deck.js/extensions/status/deck.status.css">
+	<link rel="stylesheet" href="deck.js/extensions/hash/deck.hash.css">
+
+	<!-- include code mirror default css and the theme you want. -->
+	<link rel="stylesheet" href="deck.codemirror.css">
+	<link rel="stylesheet" href="themes/default.css">
+
+	<!-- Theme CSS files (menu swaps these out) -->
+	<link rel="stylesheet" id="transition-theme-link" href="deck.js/themes/transition/horizontal-slide.css">
+	
+	<link rel="stylesheet" href="introduction.css">	
+	
+	<!-- Tooltipster CSS theme --> 
+	<link rel="stylesheet" type="text/css" href="tooltipster/css/tooltipster.css" />
+	
+	<!-- My style -->
+	<style type="text/css">
+            .myCodeDiv {
+	        font-size: xx-large; 
+		margin: 10px; 
+		background-color: #C2D6D6;  
+            }
+	    
+	    .myCodeSpan {
+	        font-size: xx-large; 
+	    }
+	</style> 
+	
+	<script src="modernizr.custom.js"></script>
+</head>
+
+<body>
+	<article class="deck-container">
+	
+	<section class="slide" id="js-data-types">
+	<h1>DOM Scripting - Quick Review</h1>
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h1>Scripting Browser Windows</h1>
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h2>Scripting Browser Windows: Timers</h2>
+	<ul> 
+	   <li><h3><em>setTimeout(fun, deltaT):</em> fun is executed after the deltaT miliseconds</h3></li> 
+	   <li><h3><em>setInterval(fun, deltaT):</em> fun is executed every deltaT miliseconds</h3></li>
+	   <li><h3><em>clearTimeOut(fun), clearInterval(fun):</em> cancel the execution of a scheduled function</h3></li>
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>setTimeout(function(){alert("Hello")},3000); 
+var f = function() { 
+	alert('f is executing...'); 
+	if(confirm('do you want to cancel this annoying message?')){ 
+		clearInterval(arguments.callee.id); 
+	} 
+} 
+f.id = setInterval(f, 2000); 
+		</textarea></div>
+     <br /> 
+     <h3>Remark: these functions take string arguments or functions as arguments. If you pass them 
+	     a string argument it is dynamically evaluated</h3>
+	</section>
+	
+	<section class="slide" id="js-data-types">
+	<h2>Scripting Browser Windows: Current Location</h2>
+	<h3>How to interact with the current <em>location</em>?</h3> 
+	<ul> 
+	   <li><h3><em>location:</em> the location property</h3></li> 
+	   <li><h3><em>href:</em> the href property</h3></li>
+	</ul> 
+	<h3>Remarks:</h3>
+    <ul>
+	   <li><h3><em>Difference:</em> if there was a redirect location holds the original reference</h3></li> 	   
+	   <li><h3>Both can be set programmatically</h3></li>  
+    </ul>	
+	<br /> 
+	<h3>How to interact with the current history?</h3> 
+	<ul>
+        <li><h3><em>back():</em>moves BACK in the window or frame history</h3></li>
+        <li><h3><em>forward():</em>moves FORWARD...</h3></li>	   	
+	</ul> 
+	</textarea></div>	
+	</section>
+	
+
+	<section class="slide" id="js-data-types">
+	<h2>Navigator Information</h2>
+	<h3>What can we know about the current navigator?</h3>
+    <ul> 
+     	<li><h3><em>appName</em>: the name of the web browser</h3></li>
+		<li><h3><em>appVersion</em>: the version of the web browser</h3></li>
+		<li><h3><em>appName</em>: the string that the browser sends in its USER-AGENT</h3></li>
+		<li><h3><em>appName</em>: the name of the web browser</h3></li>
+		<li><h3><em>appName</em>: the hardware platform on which the browser is running</h3></li>
+	</ul>	
+	<br > 
+	<h3>Why is this information useful?</h3>
+    <ul>
+	   <li><em>Privacy...</em></li> 
+	   <li><em>Graceful degradation...</em></li>  
+    </ul>	
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Manipulating Windows</h2>
+	<h3>Types of coordinates</h3>  
+	<ul>
+	   <li><em>Screen Coordinates:</em> relative to the screen</li> 
+	   <li><em>Window Coordinates:</em> relative to the viewport</li>
+	   <li><em>Document Coordinates:</em> relative to the document</li>	   
+	</ul> 
+	<h3>Size and position:</h3>
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>//The overall size of the browse window on the desktop
+var windowHeight = window.outerHeight;
+var windowWidth = window.outerWidth;
+//The position of the browser window on the desktop
+var windowX = window.screenX;
+var windowY = window.screenY;
+//The size of the viewport in which the HTML document is displayed
+var viewportWidth = window.innerWidth;
+var viewportHeight = window.innerHeight;
+//The horizontal and vertical scrollbar positions
+var horizontalScroll = window.pageXOffset;
+var verticalScroll = window.pageYOffset;
+console.log(horizontalScroll); 
+    </textarea></div>
+    </section> 
+	
+	<section class="slide" id="js-data-types">
+	<h1>DOM - Revisiting the fundamentals</h1>
+	</section>  
+	
+	<section class="slide" id="js-data-types">
+	<h2>DOM</h2>
+	<h3>DOM stands for Document Object Model - it is an API</h3>
+    <a href="http://www.w3.org/DOM/">DOM API</a> 	
+	<br /> 
+	<img src="domAPI.png"	width="70%"/> 
+	</section>  
+	
+	<section class="slide" id="js-data-types">
+	<h2>The Node API </h2>
+	<h3>Different types of nodes: <em>nodeType</em></h3>
+    <ul> 
+	   <li><h3>Node.ELEMENT NODE</h3></li>
+	   <li><h3>Node.TEXT NODE</h3></li>
+	   <li><h3>Node.DOCUMENT NODE</h3></li>
+	   <li><h3>Node.ATTRIBUTE NODE</h3></li>
+    </ul> 	   
+	<br /> 
+	<h3>Traversing the document:</h3>
+	<ul> 
+	   <li><h3>childNodes</h3></li>
+	   <li><h3>firstChild</h3></li>
+	   <li><h3>lastChild</h3></li>
+	   <li><h3>nextSibling</h3></li>
+	   <li><h3>previousSibling</h3></li>
+	   <li><h3>parentNode</h3></li>
+	</ul>
+	</section> 
+
+
+	<section class="slide" id="js-data-types">
+	<h2>The Node API </h2>
+	<h3>Modifying a node:</h3>
+	<ul> 
+	   <li><h3>appendChild()</h3></li>
+	   <li><h3>removeChild()</h3></li>
+	   <li><h3>replaceChild()</h3></li>
+	   <li><h3>insertBefore()</h3></li>
+	</ul>
+	<h3>Attributes:</h3>
+	<ul> 
+	   <li><h3>attributes</h3></li>
+	   <li><h3>getAttribute()</h3></li>
+	   <li><h3>getAttributeNode()</h3></li>
+	   <li><h3>removeAttribute()</h3></li>
+	   <li><h3>setAttribute()</h3></li>
+	</ul>
+	</section> 
+
+	<section class="slide" id="js-data-types">
+	<h2>The Document Fragment</h2>
+
+	<h3><em>DocumentFragment</em> node that does not appear in a document itself but serves as a temporary 
+	    for a sequential collections of nodes and allows those nodes to be manipulated as a single object</h3>
+	
+	<h3>Adding a DocumentFragment to an element is the same thing as adding its children</h3>  
+	
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var df = document.createDocumentFragment(); 
+var tn1 = document.createTextNode('ola nundo 1'); 
+var n1 = document.createElement('div');
+n1.appendChild(tn1); 
+var tn2 = document.createTextNode('ola nundo 2'); 
+var n2 = document.createElement('div');
+n2.appendChild(tn1);
+df.appendChild(n1); 
+df.appendChild(n2); 
+document.body.appendChild(df);  
+</textarea></div>	
+
+	</section> 
+	
+
+	<section class="slide" id="js-data-types">
+	<h2>The Node API </h2>
+	<h3>Finding elements</h3>
+	<ul> 
+	   <li><h3>getElementById()</h3></li>
+	   <li><h3>getElementByName()</h3></li>
+	   <li><h3>getElementByTagName()</h3></li>
+	   <li><h3>getElementByClassName()</h3></li>
+	</ul>
+	<h3><em>Remark:</em>These methods output HTML collections. HTML collections 
+	    seem like normal arrays, but they are NOT.</h3>
+    <br /> 
+	<h3><em>LIVE Collection</em>: HTML collections are QUERIES against the document. The 
+	    query corresponding  to the collection is reexecuted each time you need to update
+		the collection</h3> 
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Document API</h2>
+	<h3>Creating nodes: </h3> 
+	<ul> 
+	   <li><h3>createElement()</h3></li>
+	   <li><h3>createTextNode()</h3></li>
+	</ul>
+	<h3>More document properties: </h3>
+	<ul> 
+	   <li><h3>document.images</h3></li>
+	   <li><h3>document.links</h3></li>
+	   <li><h3>document.forms</h3></li>
+	   <li><h3>document.frames</h3></li>
+	</ul>
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>CSS in one slide</h2>
+	<h3>CSS - cascading style sheets</h3> 
+	<h3>A <em>style sheet</em> is a list of <em>style rules</em>.</h3>
+	<pre>
+styleRule        ::= selector { declaration-list }
+declaration-list ::= declaration; declaration-list		
+declaration      ::= property: value 
+	</pre> 
+	<h3>Example</h3> 
+    <pre> 
+p { color: green; }
+img {
+  float: left;
+  margin-right: 10px;
+}
+	</pre> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>Scripting CSS styles</h2>
+	<h3>You can interact the <em>style</em> attribute directly.</h3> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var shadow = document.createElement("span");
+shadow.setAttribute("style", "position: absolute; " +
+"left: " + "shadowX + ";" +
+"top: " + "shadowY + ";" +
+"color: " + "shadowColor + ";");
+</textarea></div>
+    <br /> 
+	<h3>Alternative ways: </h3> 
+	<ul> 
+	   <li><h3><em>style</em> property of HTML elements: it only gets the inline style</h3></li>
+	   <li><h3>To obtain the <em>real</em> style: <em>currentStyle</em> and 
+        	   <em>getComputedStyle()</em> </h3></li>
+	</ul> 
+	<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var p = document.getElementsByTagName("p").[0];
+var typeface = "";
+if(p.currentStyle)
+  typeface = p.currentStyle.fontFamily;
+else if(window.getComputedStyle)
+  typeface = window.getComputedStyle(p, null).fontFamily;
+</textarea></div>
+	</section> 
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Scripting CSS styles - the right way</h2>
+	<h3>Some advice:</h3>
+    <ul> 
+	   <li><h3>Do NOT script styles directly</h3></li>
+	   <li><h3>Use the HTML class attribute instead</h3></li>	   
+    </ul>
+	<br /> 
+	<h3>Each HTMLElement object has a <em>className</em> property that mirror the HTML class attribut</h3> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h1>Events and Event Handling</h1>
+	</section>
+	
+	
+	<section class="slide" id="js-data-types">
+	<h2>Events Models</h2>
+	<h3><em>The Original Event Model</em> - DOM Level 0 API </h3>
+	<ul>
+	   <li><h3>An event is an abstraction internal to the web browser.</h3></li>
+	   <li><h3>JavaScript cannot manipulate an event directly</h3></li>
+	   <li><h3>To listen to an event you have to specify the corresponding event handler</h3></li>
+	</ul>
+	<h3><em>The Standard Event Model</em> - DOM Level 3 API </h3>
+	<ul>
+	   <li><h3>Events are objects that implement the interface defined in the DOM Level 3
+	           API</h3></li> 
+	   <li><h3>Events are propagated in two phases: <em>capturing phase</em> and 
+	           <em>bubbling</em></h3></li> 
+	</ul>
+	<a href='http://www.w3.org/TR/2012/WD-DOM-Level-3-Events-20120614/'><h3>Event Interface</h3></a> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>The original event model</h2>
+	<h3>Event handlers:</h3>
+	<div class="myCodeDiv"> 
+	  <span class="myCodeSpan">
+	     <table> 
+	        <tr><td>onabort, onblur, onchange, onclick, onerror          </td></tr> 
+	        <tr><td>onfocus, onkeydown, onkeypressed, onkeyup, onload    </td></tr> 
+            <tr><td>onmousedown, onmousemove, onmouseout, onmouseover    </td></tr> 
+            <tr><td>...  </td></tr> 
+           </table> 
+	 </span> 
+	</div>
+	<br /> 
+	<h3><em>Remark:</em> Use <b>onload</b> to avoid interacting with the dom 
+	    before it is loaded!</h3>
+    <br /> 
+   <div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var b = document.getElementById('b1'); 
+b.onclick = function() { alert('you clicked on button b1'); };  
+</textarea></div> 
+    <br /> 
+	<h3>When an event is triggered, the browsers executes the corresponding 
+	    event handler (if it is defined) of the element on which it occured. 
+    </h3> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>The Standard Event Model</h2>
+	<h3>Event Capture</h3>
+	<ul>
+      <li><h3><b>Capturing Phase: </b>the event propagates from the document object to the target node</h3></li>
+	  <li><h3><b>Target Phase: </b>event handlers registered directly at the target are run</h3></li>
+      <li><h3><b>Bubbling Phase: </b>the event bubbles back up to the document node</h3></li>	  
+	</ul>
+	<img src='events.png' /> 
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>The Standard Event Model - Registering Event Listeners</h2>
+	<h3>To register an event listener: <em>addEventListener(eventType, fun, bool)</em></h3>
+	<ul>
+      <li><h3><b>bool == true:</b> capturing phase</h3></li>
+	  <li><h3><b>bool == false:</b> bubbling phase</h3></li>	  
+	</ul>
+	<h3>And what about the target phase?</h3>
+	<br /> 
+	<h3>To remove an event listener: <em>removeEventListener(eventType,fun,bool)</em></h3> 
+<div><textarea id="code" name="code" class="code" mode="javascript" style="display: none;" runnable="true"
+>var mydiv = document.getElementById("mydiv");
+mydiv.addEventListener("mousedown", handleMouseDown, true);
+</textarea></div> 	
+	</section> 
+	
+	<section class="slide" id="js-data-types">
+	<h2>The Standard Event Model - The Event Object</h2>
+	<h3>Three types of events</h3>
+	<ul> 
+	   <li><h3><b>Event:</b> abort, blur, change, error, focus, load, reset, resize, scroll, select</h3></li> 
+	   <li><h3><b>MouseEvent:</b> click, mousedown, mousemove, mouseout, mouseover, mouseup</h3></li>
+	   <li><h3><b>UIEvent:</b> OMActivate, DOMFocusIn, DOMFocusOut</h3></li>
+	</ul> 
+	<h3>The Event interface</h3> 
+	<ul>
+        <li><h3><b>type</b></h3></li> 
+	   	<li><h3><b>target:</b> the node on which the event occured</h3></li>
+		<li><h3><b>currentTarget:</b> the node on which the event is being
+		        processed</h3></li> 
+		<li><h3><b>eventPhase:</b> a number specifying the event phase</h3></li>
+		<li><h3><b>timeStamp:</b> a date object specifying when the event
+		     occurred</h3></li>
+	    <li><h3><b>bubbles:</b> a boolean specifying whether the event bubbles up</h3></li>
+	    <li><h3><b>cancelable:</b>a boolean specifying whether the event has 
+		    a default action</h3></li>
+		<li><h3><b>stopPropagation()</b></h3></li>
+		<li><h3><b>preventDefault()</b></h3></li>
+	</ul>
+	</section> 
+	
+	
+	
+	<a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+	<a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+		<p class="deck-status">
+			<span class="deck-status-current"></span>
+			/
+			<span class="deck-status-total"></span>
+		</p>
+
+		<form action="." method="get" class="goto-form">
+			<label for="goto-slide">Go to slide:</label>
+			<input type="number" name="slidenum" id="goto-slide">
+			<input type="submit" value="Go">
+		</form>
+
+		<a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+	</article>
+
+	
+	<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.js"></script>-->
+	<script src="jquery-1.9.0.min.js"></script>
+	<script type="text/javascript" src="tooltipster/js/jquery.tooltipster.min.js"></script>
+	
+	<!-- Deck Core and extensions -->
+	<script src="deck.js/core/deck.core.js"></script>
+	<script src="deck.js/extensions/menu/deck.menu.js"></script>
+	<script src="deck.js/extensions/goto/deck.goto.js"></script>
+	<script src="deck.js/extensions/status/deck.status.js"></script>
+	<script src="deck.js/extensions/navigation/deck.navigation.js"></script>
+	<script src="deck.js/extensions/hash/deck.hash.js"></script>
+  
+  <!-- include the base codemirror code. -->
+  <script src="codemirror.js"></script>
+	
+	<!-- include the code syntax you want to highlight -->
+	<!-- javascript -->
+  <script src="mode/javascript/javascript.js"></script>
+
+  <!-- html mode : note code miror requires xml, css and javasript modes for html rendering -->
+  <script src="mode/xml/xml.js"></script>
+  <script src="mode/css/css.js"></script>
+  <script src="mode/htmlmixed/htmlmixed.js"></script>
+  
+	<script src="deck.codemirror.js"></script>
+	
+	
+	<!-- Stuff specific to this page -->
+	<script src="introduction.js"></script>
+	
+	<script>
+        $(document).ready(function() {
+            $('.tooltip').tooltipster();
+	    var x = $('.myCodeSpan'); 
+	    x.css('font-size', 'x-large');
+	    x.css('font-weight', 'bold');
+		window.action = 'eat';
+		window.eatIt = function(){ alert('eat'); }; 
+		window.drinkIt = function() { alert('drink'); };
+		window.getObject = function() { return {} }; 
+        });
+       </script>
+   
+
+</body>
+</html>

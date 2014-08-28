@@ -1,0 +1,43 @@
+
+
+Instructions on how to use the online tool: 
+
+
+1) Loading IFSignatures Dynamically - Example 
+
+The program: 
+var h; 
+h = 2; 
+upgVar(h, '2'); 
+alert(h); 
+
+Is illegal according to the default program for alert 
+(a program cannot alert sensitive content). However, 
+it the following IFSignature is loaded: 
+
+_enforce = function (lev_ctxt, f, arg, lev_arg) {
+}; 
+
+_updtLab = function (ret,  lev_ctxt, f, arg, lev_arg) {
+      return lev_ctxt; 
+};
+ 
+_isInDomain = function (f, prop, fun_flag) {
+        return (fun_flag === 'function_call') && (f === alert) && (prop === null); 
+};
+
+The program above will become legal.
+
+
+2) I introduce two special upgrade instructions that are needed. 
+  
+   2.1) upgTreeLevel - upgrades the ownIndex property of a node (together with its
+        pNode property and with the index property that points to it). But first, 
+        it checks if the invariant concerning the levels of the indexes of a DOM 
+        Element Node is still verified. 
+
+   2.2) upgGlobalTagLevel(TAG, LEVEL) - upgrades the level corresponding to the 
+        upper threshold on the levels of the context in which nodes with tag TAG
+        can be appended or removed. 
+        
+3) 
