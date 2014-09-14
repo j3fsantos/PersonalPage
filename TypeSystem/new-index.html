@@ -1,0 +1,370 @@
+<!doctype html>
+<html>
+
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <title>Typing Secure Information Flow in JavaScript</title>
+
+ <script src="srcs/js/libs/jquery-1.9.0.min.js"></script>
+ <script type="text/javascript" src="srcs/js/libs/jquery-ui-1.10.4.js"></script>
+ <script src="srcs/js/libs/jquery.validate.min.js"></script>
+ <script src="srcs/js/libs/esprima.js"></script>
+ <script src="srcs/js/libs/escodegen.js"></script>
+ 
+ <!-- Code mirror stuff -->
+ <script src="srcs/js/libs/codemirror/codemirror.js" type="text/javascript"></script>
+ <script src="srcs/js/libs/codemirror/htmlmixed.js"></script>
+ <script src="srcs/js/libs/codemirror/xml.js"></script>
+ <script src="srcs/js/libs/codemirror/javascript.js" type="text/javascript"></script>
+ <script src="srcs/js/libs/codemirror/css.js"> </script>
+ <script src="srcs/js/libs/codemirror/clike.js"> </script>
+ <script src="srcs/js/libs/codemirror/php.js"> </script>
+
+ <!-- Type System Stuff -->
+ <script src="srcs/js/type_system/utils.js"></script>
+ <script src="srcs/js/type_system/lattice.js"></script>
+ <script src="srcs/js/type_system/cond_sets.js"></script>
+ <script src="srcs/js/type_system/type_parser.js"></script>
+ <script src="srcs/js/type_system/type_checker.js"></script>
+ 
+ <link rel="stylesheet" href="srcs/styles/libs/codemirror.css" type="text/css" />
+ <link rel="stylesheet" type="text/css" href="srcs/styles/libs/jqueryui-themes/base/jquery-ui.css">
+ <!-- <link rel="stylesheet" type="text/css" href="srcs/styles/libs/jqueryui-themes/base/jquery-ui.all.css">-->
+ <link rel="stylesheet" href="srcs/styles/page/style.css" type="text/css" />
+ 
+  
+ <script type="text/javascript" src="srcs/js/page/scripts.js"></script>
+</head>
+<body>
+
+<h1><i class="iflowtypes-word">iflowTYPES.js</i> Typing Secure Information Flow in JavaScript</h1>
+
+<div id="tabs">
+	<table width="100%"><tr>
+       <td width="33%" align="center">
+       	   <a href="javascript:tab('intro');">Introduction</a>
+       </td>
+       
+       <td width="33%" align="center">
+       	   <a href="javascript:tab('type-checker');">Type Checker</a>
+       </td>     
+       
+       <td width="33%" align="center">
+       	   <a href="javascript:tab('case-studies');">Case Studies</a>
+       </td> 
+       
+    </tr></table>
+</div>
+
+<div id="intro">
+<h2>Introduction</h2>
+
+<p>
+ <i class="iflowtypes-word">iflowtypes.js</i> is a JavaScript library designed to type secure 
+ information flow in JavaScript. <i>iflowtypes.js</i> has two main 
+ modes of operation: fully static and hybrid. In the hybrid mode, 
+ the program to be typed is instrumented with runtime assertions 
+ that are verified at runtime. By deferring rejection to runtime, the hybrid 
+ type system is able to type more programs than fully static mechanisms. 
+</p>
+
+<p>
+ <i>iflowtypes.js</i> was designed as a didactical tool to support 
+ the paper... 
+</p>
+
+<p>
+ Techical details can be found in the paper <a href="usenixsec13.pdf">From Static to 
+ 	Hybrid Information Flow Control in Core of JavaScript</a>.
+</p>
+
+<h3>Contact information</h3>
+
+<p>
+If you have questions, comments or find a bug, please contact 
+ <a href="http://j3fsantos.github.io/PersonalPage/" target="_blank">José Fragoso Santos</a>.
+</p>
+
+<h3>Frequently asked questions</h3>
+
+Some questions regarding the type system:
+<ul>
+<li>
+In the paper, you claim that regardless of the precision of the property-set annotations, the hybrid 
+type system is always able to type a program, provided that there exist a set of property-set annotations
+with which it typable using the purely static type system. How is that possible?
+<blockquote>
+<b>A:</b> This is possible because...
+</blockquote>
+</li>
+
+<li>
+What about combinatorial explosion?
+<blockquote>
+<b>A:</b> This is an important issue regarding the use of the hybrid type system...
+</blockquote>
+</li>
+
+</ul>
+</div>
+
+
+<div id="type-checker" class="hid">
+<h2>Type-Checker</h2>
+
+<form id="form-typing" action="/" method="post">
+<div>
+<b>Load example:</b> &nbsp;
+Category: <select id="cat" onchange="catchange(this.value)"> </select> &nbsp;
+File: <select id="ex"> </select> &nbsp;
+<input type="button" value="Load" onclick="loadex();">
+</div>
+
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend>Processing options</legend>
+<p style="margin-top:0px">
+Action type:
+ <input type="radio" name="type" value="0" id="radbutton_st" />
+ <label for="tc">Static Typecheck</label>
+ <input type="radio" name="type" value="1" id="radbutton_ht" checked="checked" />
+ <label for="pp">Hybrid Typecheck</label>
+ &nbsp;
+ <input type="button" value="Execute" onclick="typecheck();" />
+</p>
+</fieldset>
+
+<div>
+<b>Input script:</b>
+<br />
+<textarea name="input" style="width:100%; height:250px;" id="jsi"> </textarea>
+
+<b>Type of the Output:</b>
+<br />
+<textarea style="width:100%;height:100px;" id="res-type"> </textarea>
+
+<b>Writing Effect:</b>
+<br />
+<textarea style="width:100%;height:100px;" id="res-writing-effect"> </textarea>
+
+
+<b>Instrumented Script:</b>
+<br />
+<textarea style="width:100%;height:200px;" id="jso"> </textarea>
+</div>
+</form>
+
+<form id="form-types" action="/" method="post">
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend><b>Typing Environment</b></legend>
+<p style="margin-top:0px">
+<table id="tabletypeenv">	
+</table>
+<input type="button" value="Add Security Type" onclick="updateTypingEnvironment();" />
+</p>
+</fieldset></form>
+<br />
+<br />
+<form id="form-my-types" action="/" method="post">
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend><b>My Types</b></legend>
+<p style="margin-top:0px">
+<table id="tablemytypes">	
+</table>
+<input type="button" value="Add Security Type" onclick="updateMyTypes();" />
+</p>
+</fieldset></form>
+
+<div id="hybrid-source">
+<p>Source code available <a href="/jsdefp/">here</a>.</p>
+<p>
+Notes: 
+</p>
+</div>
+
+
+</div>
+
+
+
+<div id="credits">
+<!--
+<table width="100%"><tr>
+<td width="50%" align="center">
+<a href="http://prosecco.inria.fr/" target="_blank">
+<img src="i/prosecco.png" alt="Programming Securely with Cryptography" />
+</a></td>
+<td align="center">
+<a href="http://www.inria.fr" target="_blank">
+<img src="i/inria.png" alt="Institut National de Recherche en Informatique et Automatique" />
+</a></td>
+</tr></table>-->
+</div>
+
+<div id="example_categories">
+   <div class="category" name="basic">
+   	       <div>
+		   	  <span class="desc">Value</span>
+		      <span class="prog_input">3</span>
+              <span class="types"></span>
+		   </div>
+		   	
+		   <div>
+		   	  <span class="desc">Variable - 1</span>
+		      <span class="prog_input">h</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable - 2</span>
+		      <span class="prog_input">l</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Binary Operatorion - 1</span>
+		      <span class="prog_input">l0 + h;</span>
+              <span class="types">l0: PRIM^{0}&#10; l1: PRIM^{0}&#10; h: PRIM^{1}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Binary Operatorion - 2</span>
+		      <span class="prog_input">l0 + l1;</span>
+              <span class="types">l0: PRIM^{0}&#10; l1: PRIM^{0}&#10; l2: PRIM^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Unary Operatorion - 1</span>
+		      <span class="prog_input">!l</span>
+              <span class="types">l: PRIM^{0}&#10;</span>
+		   </div>
+		   
+		    <div>
+		   	  <span class="desc">Unary Operatorion - 2</span>
+		      <span class="prog_input">!h</span>
+              <span class="types">h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+     	   <div>
+		   	  <span class="desc">Variable Assignment - 1</span>
+		      <span class="prog_input">h = l</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assignment - 2</span>
+		      <span class="prog_input">l = h</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assignment - 3</span>
+		      <span class="prog_input">l1 = l1 + l2</span>
+              <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assignment - 4</span>
+		      <span class="prog_input">l1 = l1 + h</span>
+              <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assignment - 5</span>
+		      <span class="prog_input">h = l1 + l2 + h</span>
+              <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Property Look-up - 1</span>
+		      <span class="prog_input">l = o[y];</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Property Look-up - 2</span>
+		      <span class="prog_input">l = o[y; &lt;STR&gt;];</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Property Look-up - 3</span>
+		      <span class="prog_input">l = o[y; {p3, p4}];</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Property Look-up - 4</span>
+		      <span class="prog_input">l = o[y; {p1, p5}];</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Property Look-up - 5</span>
+		      <span class="prog_input">h = o[y];</span>
+              <span class="types">h: PRIM^{5}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 1</span>
+		      <span class="prog_input">l = y in o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 2</span>
+		      <span class="prog_input">l = y in o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 3</span>
+		      <span class="prog_input">l = y in o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{1}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 4</span>
+		      <span class="prog_input">l = y in^{p1, p4} o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Property Assignment - 1</span>
+		      <span class="prog_input">o1[y] = o2[x];</span>
+              <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Property Assignment - 2</span>
+		      <span class="prog_input">o1[y; {p1}] = o2[x; {q2, q1}];</span>
+              <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Property Assignment - 3</span>
+		      <span class="prog_input">o1[y; {p2}] = o2[x; {a2, q1}];</span>
+              <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+		   </div>
+   </div>
+</div>
+
+<div id="type-insertion-dialog">
+	<b>Global Variable</b> &nbsp;
+    <input type="text" id="var_name" /> 
+    <br />
+	<b>Edit Type</b> <br />
+	<textarea style="width:100%; height:100px;" > </textarea>
+</div>
+
+<div id="type-update-dialog">
+    <b>Global Variable:</b> &nbsp;
+    <span class="var_name"> </span> 
+    <br />
+	<b>Security Type:</b> <br />
+	<div style="width:100%; height:100px;" class="type_text" > </div>
+</div>
+
+
+</body>
+
+</html>

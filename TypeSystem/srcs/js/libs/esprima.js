@@ -501,7 +501,7 @@ parseStatement: true, parseSourceElement: true */
     }
 
     function getIdentifier() {
-        var start, ch;
+        var start, ch, property_set, ret;
 
         start = index++;
         while (index < length) {
@@ -517,18 +517,43 @@ parseStatement: true, parseSourceElement: true */
                 break;
             }
         }
-
-        return source.slice(start, index);
+        
+        ret = source.slice(start, index);
+        
+         // This is mine!!!        
+        if ((ret === 'in') && (source[index]==='^')) {
+        	index++; 
+        	//alert('This is mine!!!! Ahahahahah!!!! ' + source[index]); 
+        	property_set = parsePropertySet(); 
+        	return {
+        	   ret: ret, 
+        	   property_set: property_set
+        	};
+        } else if (ret === 'in'){
+        	property_set = makePropertySet();
+        	return {
+        	   ret: ret, 
+        	   property_set: property_set
+        	};
+        }
+        
+        return ret;
     }
 
     function scanIdentifier() {
-        var start, id, type;
+        var start, id, type, property_set, ret;
 
         start = index;
 
         // Backslash (char #92) starts an escaped character.
         id = (source.charCodeAt(index) === 92) ? getEscapedIdentifier() : getIdentifier();
-
+ 
+        // 
+        if (typeof id === 'object') {
+        	property_set = id.property_set;
+           	id = id.ret; 
+        }
+         
         // There is no keyword or literal with only one character.
         // Thus, it must be an identifier.
         if (id.length === 1) {
@@ -543,13 +568,19 @@ parseStatement: true, parseSourceElement: true */
             type = Token.Identifier;
         }
 
-        return {
-            type: type,
-            value: id,
-            lineNumber: lineNumber,
-            lineStart: lineStart,
-            range: [start, index]
+        ret = {
+           type: type,
+           value: id,
+           lineNumber: lineNumber,
+           lineStart: lineStart,
+           range: [start, index]
         };
+        
+        if (property_set) {
+            ret.property_set = property_set;         	
+        }
+        
+        return ret;
     }
 
 
@@ -1151,14 +1182,15 @@ parseStatement: true, parseSourceElement: true */
             };
         },
 
-        createBinaryExpression: function (operator, left, right) {
+        createBinaryExpression: function (operator, left, right, property_set) {
             var type = (operator === '||' || operator === '&&') ? Syntax.LogicalExpression :
                         Syntax.BinaryExpression;
             return {
                 type: type,
                 operator: operator,
                 left: left,
-                right: right
+                right: right, 
+                property_set: property_set
             };
         },
 
@@ -1916,14 +1948,122 @@ parseStatement: true, parseSourceElement: true */
         return parseNonComputedProperty();
     }
 
+
+    /*
+    *  My own functions :PPPP
+    */
+    function makePropertySet (properties) {
+    	if (!properties) {
+    		return {
+    			all_strings: true
+    		};
+    	} else {
+    	   return {
+    		properties: properties
+    	   };
+    	}
+    }
+   
+    function belongsTo(member, arr) {
+       var i, len; 
+       for (i = 0, len = arr.length; i < len; i++) {
+          if (arr[i] === member) return true; 
+       }
+       return false; 
+    } 
+
+    function skip (delimiters) {
+       var i, len;
+       
+       len = source.length; 
+       if (!delimiters) delimiters = [' ']; 
+  
+       while (index < len) {
+          if (!belongsTo(source[index], delimiters)) break;
+          index++;
+       }
+    }
+    
+    function parseWord (delimiters) {
+       var len, start, word;
+   
+       if (!delimiters) delimiters = [' ']; 
+       len = source.length;
+       start = index; 
+       
+       while (index < len) {
+          if (belongsTo(source[index], delimiters)) break;
+          index++;  
+       }
+       
+       word = source.substring(start, index);
+       return word; 
+    };
+
+	function parsePropertySet() {
+      var ch, properties, ret, start, str, word; 
+      
+      start = index;  
+      ch = source[index];
+      if ((ch !== '{') && (ch !== '<')) {
+         expect('PROPERTY SET');
+      }
+   
+      if (ch === '<') {
+         str = source.substring(index, index+5);
+         if (str !== '<STR>') {
+             expect('PROPERTY SET');
+         }
+         index += 5; 
+         return makePropertySet();
+      }
+   
+      properties = []; 
+   
+      index++;
+      skip();
+      while (source[index] !== '}') {
+         word = parseWord([',', '}', ' ']);
+         properties.push(word); 
+         skip([' ', ',']);
+      }
+   
+      index++;
+      return makePropertySet(properties); 
+   }
+   
+   function myAdvance (ch, lindex, rindex) {
+      lookahead = {
+      	type: Token.Punctuator, 
+      	lineNumber: lookahead.lineNumber, 
+      	lineStart: lookahead.lineStart, 
+      	value: ch, 
+      	range: [lindex, rindex]
+      };
+   }
+   
     function parseComputedMember() {
-        var expr;
+        var expr, property_set;
 
         expect('[');
 
         expr = parseExpression();
 
+        // This is mine!!!        
+        if (match(';')) {
+        	index++; 
+        	skip([' ']);
+        	//alert('This is mine!!!! Ahahahahah!!!! ' + source[index]); 
+        	property_set = parsePropertySet(); 
+        } else {
+        	property_set = makePropertySet();
+        }
+        
+        myAdvance(']', index, index+1); 
+        //alert('and now the end is near and i must face the final countdown');
+        //alert(source[index]); 
         expect(']');
+        expr.property_set = property_set; 
 
         return expr;
     }
@@ -2128,7 +2268,8 @@ parseStatement: true, parseSourceElement: true */
 
     function parseBinaryExpression() {
         var expr, token, prec, previousAllowIn, stack, right, operator, left, i;
-
+        var operator_name, property_set; 
+        
         previousAllowIn = state.allowIn;
         state.allowIn = true;
 
@@ -2149,9 +2290,12 @@ parseStatement: true, parseSourceElement: true */
             // Reduce: make a binary expression from the three topmost entries.
             while ((stack.length > 2) && (prec <= stack[stack.length - 2].prec)) {
                 right = stack.pop();
-                operator = stack.pop().value;
+                operator = stack.pop(); 
+                operator_name = operator.value;
+                property_set = operator.property_set; 	
                 left = stack.pop();
-                stack.push(delegate.createBinaryExpression(operator, left, right));
+                
+                stack.push(delegate.createBinaryExpression(operator, left, right, property_set));
             }
 
             // Shift.
@@ -2167,7 +2311,7 @@ parseStatement: true, parseSourceElement: true */
         i = stack.length - 1;
         expr = stack[i];
         while (i > 1) {
-            expr = delegate.createBinaryExpression(stack[i - 1].value, stack[i - 2], expr);
+            expr = delegate.createBinaryExpression(stack[i - 1].value, stack[i - 2], expr, stack[i - 1].property_set);
             i -= 2;
         }
         return expr;

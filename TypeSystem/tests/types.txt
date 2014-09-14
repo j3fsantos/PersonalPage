@@ -25,3 +25,9 @@ y: PRIM^{3}
 
 Property Annotation: 
 <STR>
+
+==========================Interesting Cases=====================================
+
+_runtime.in($x_2, ['p1']) && (_runtime.in($x_2,  ['p1']) || _runtime.in($x_2, ['p2']) || !_runtime.in($x_2, ['p1','p2']))
+$x_2 == 'p1' && ($x_2 == p1 || $x_2 == p2 || x
+ 

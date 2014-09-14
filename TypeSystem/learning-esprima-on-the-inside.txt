@@ -1,0 +1,83 @@
+ function getIdentifier() {
+        var start, ch;
+
+        start = index++;
+        while (index < length) {
+            ch = source.charCodeAt(index);
+            if (ch === 92) {
+                // Blackslash (char #92) marks Unicode escape sequence.
+                index = start;
+                return getEscapedIdentifier();
+            }
+            if (isIdentifierPart(ch)) {
+                ++index;
+            } else {
+                break;
+            }
+        }
+
+        return source.slice(start, index);
+    }
+ }
+ 
+
+  function parseComputedMember() {
+        var expr;
+
+        expect('[');
+
+        expr = parseExpression();
+        
+        
+       /***
+        * Mine
+        */
+        
+   
+        expect(']');
+
+        return expr;
+    }
+
+
+    // Return true if the next token matches the specified punctuator.
+
+    function match(value) {
+        return lookahead.type === Token.Punctuator && lookahead.value === value;
+    }
+
+
+
+    function lex() {
+        var token;
+
+        token = lookahead;
+        index = token.range[1];
+        lineNumber = token.lineNumber;
+        lineStart = token.lineStart;
+
+        lookahead = advance();
+
+        index = token.range[1];
+        lineNumber = token.lineNumber;
+        lineStart = token.lineStart;
+
+        return token;
+    }
+
+
+    function peek() {
+        var pos, line, start;
+
+        pos = index;
+        line = lineNumber;
+        start = lineStart;
+        lookahead = advance();
+        index = pos;
+        lineNumber = line;
+        lineStart = start;
+    }
+
+
+
+

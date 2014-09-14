@@ -73,5 +73,9 @@
       return lev_0 === lev_1; 
    }; 
    
+   lat.print = function (lev) {
+      return lev;	
+   };
+   
    exports.lat = lat; 
 })(window);

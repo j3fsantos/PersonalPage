@@ -57,28 +57,41 @@ sec_types.typeCheck = function (st, type_env) {
 };
 
 sec_types.typeCheckProgram = function (st, type_env) {
-   var compiled_stmts = [], current_compiled_stmts, i, new_vars = [], new_vars_decl, original_vars_decl, ret, stmts = st.body; 
+   var compiled_prog, compiled_stmts = [], current_compiled_stmts, i, len, level_set, new_vars = [], 
+      new_vars_decl, original_vars_decl, ret, stmts = st.body, type_set; 
    
    if (st.type !== esprima.Syntax.Program) {
       throw new Error('Trying to type program statement with something that is not a program statement');
    }
-   	
-   i = stmts.length; 
-   while (i--) {
+   	 	
+   level_set = this.conds.makeCondSet(lat.top, 'true'); 
+   type_set = this.conds.makeCondSet(this.buildPrimType(lat.bot), 'true');
+  	
+   for (i = 0, len = stmts.length; i < len; i++) {
       ret = this.typeCheck(stmts[i], type_env);
+      
       current_compiled_stmts = ret.stmts; 
       if (!current_compiled_stmts) continue; 
       
-      compiled_stmts = current_compiled_stmts.concat(compiled_stmts);
-	  new_vars = new_vars.concat(ret.new_vars);
+      level_set = this.conds.genFun(level_set, ret.level_set, lat.glb);
+      type_set = ret.type_set; 
+      
+      compiled_stmts = compiled_stmts.concat(current_compiled_stmts);
+	  new_vars = new_vars.concat(ret.new_vars);	
    }
    
    original_vars_decl = utils.getProgDeclarations(st);
    new_vars_decl = this.buildNewVarsDeclaration(new_vars);
    if (original_vars_decl) compiled_stmts.unshift(original_vars_decl); 
    if (new_vars_decl) compiled_stmts.unshift(new_vars_decl); 
-    
-   return esprima.delegate.createProgram(compiled_stmts);  
+   
+   compiled_prog = esprima.delegate.createProgram(compiled_stmts);
+   
+   return {
+      writing_effect: level_set, 
+      reading_effect: type_set, 
+      instrumentation: compiled_prog
+   };   
 }; 
 
 sec_types.buildNewVarsDeclaration = function (new_vars) {
@@ -99,16 +112,19 @@ sec_types.buildNewVarsDeclaration = function (new_vars) {
 }; 
 
 sec_types.typeCheckBlockStmt = function (block_stmt, type_env) {
-   var level_set, new_vars, stmts; 
+   var i, len, level_set, new_vars, stmts, type_set; 
     
    new_vars = []; 
    stmts = []; 
    level_set = this.conds.makeCondSet(lat.top, 'true'); 
+   type_set = this.conds.makeCondSet(this.buildPrimType(lat.bot), 'true');
+   
    for (i = 0, len = block_stmt.body.length; i < len; i++) {
       ret = this.typeCheck(block_stmt.body[i], type_env); 
       stmts = stmts.concat(ret.stmts);
       new_vars = new_vars.concat(ret.new_vars);
       level_set = this.conds.genFun(level_set, ret.level_set, lat.glb);
+      type_set = ret.type_set; 
    }
    
    return {
@@ -178,19 +194,23 @@ sec_types.typeCheckAssignmentExpr = function (assign_expr, type_env) {
 };
 
 sec_types.typeCheckVarAssignmentExpr = function (assign_expr, type_env) {
-   var compiled_assignment_stmt, compiled_right_side, cond, level_set, ret_right_side, stmts, var_name, var_type_set;
+   var compiled_assignment_stmt, compiled_right_side, cond, err, level_set, ret_right_side, stmts, var_name, var_type_set;
 
    var_name = assign_expr.left.name; 
    if (!type_env.hasOwnProperty(var_name)) {
-      throw new Error('Typing Error: Incomplete Typing Environment');
+   	  err = new Error('Typing Error: Incomplete Typing Environment');
+   	  err.typing_error = true; 
+      throw err;
    }
     
    ret_right_side = this.typeCheck(assign_expr.right, type_env);
    var_type_set = [{element: type_env[var_name], cond: 'true'}];  
    cond = this.conds.when(ret_right_side.type_set, var_type_set, this.isSubType);
    if (!cond) {
-      alert('Typing Error: Illegal Assignment'); 
-      throw new Error('Typing Error: Illegal Assignment'); 
+      // alert('Typing Error: Illegal Assignment'); 
+      err = new Error('Typing Error: Illegal Assignment');
+      err.typing_error = true; 
+      throw err; 
    }
    
    compiled_assignment_stmt = window.esprima.delegate.createAssignmentExpression('=', 
@@ -214,7 +234,7 @@ sec_types.typeCheckVarAssignmentExpr = function (assign_expr, type_env) {
 };
 
 sec_types.typeCheckBinOpExpr = function (binop_expr, type_env) {
-   var compiled_stmt, level_set, new_var_name, new_vars, ret_left_side, ret_right_side, stmts, type_set; 
+   var binop, compiled_stmt, level_set, new_var_name, new_vars, ret_left_side, ret_right_side, stmts, type_set; 
    
    ret_left_side = this.typeCheck(binop_expr.left, type_env);
    ret_right_side = this.typeCheck(binop_expr.right, type_env);
@@ -223,9 +243,15 @@ sec_types.typeCheckBinOpExpr = function (binop_expr, type_env) {
    new_vars = ret_left_side.new_vars.concat(ret_right_side.new_vars);
    new_vars.push(new_var_name); 
    
+   if ((typeof binop_expr.operator) === 'object') {
+      binop = binop_expr.operator.value;
+   } else {
+   	  binop = binop_expr.operator;
+   }
+   
    compiled_stmt = window.esprima.delegate.createAssignmentExpression('=', 
    	  window.esprima.delegate.createIdentifier(new_var_name), 
-   	  window.esprima.delegate.createBinaryExpression(binop_expr.operator,
+   	  window.esprima.delegate.createBinaryExpression(binop,
    	     ret_left_side.expr, 
    	     ret_right_side.expr));
    compiled_stmt = window.esprima.delegate.createExpressionStatement(compiled_stmt);  
@@ -276,8 +302,7 @@ sec_types.typeCheckPropertyLookUp = function (member_expr, type_env) {
    var compiled_stmt, level_set, lev_exp_set, lev_set_obj, lev_set_prop, look_up_set, look_up_type_set, new_vars, 
       new_var_name, property_annotation, ret_obj, ret_obj_type_set, ret_prop, ret_prop_type_set, stmts; 
    
-   property_annotation = this.property_annotations[this.annotation_index];
-   this.annotation_index++;  
+   property_annotation = member_expr.property.property_set; 
    
    ret_obj = this.typeCheck(member_expr.object, type_env); 
    ret_prop = this.typeCheck(member_expr.property, type_env); 
@@ -318,13 +343,12 @@ sec_types.typeCheckPropertyLookUp = function (member_expr, type_env) {
 };
 
 sec_types.typeCheckPropertyAssignmentExpr = function (prop_assign_expr, type_env) {
-   var compiled_assignment_stmt, cond, cond_type, cond_level,
+   var compiled_assignment_stmt, cond, cond_type, cond_level, err, 
       level_set, lev_set_obj, lev_set_prop, lev_set_obj_prop,  
       look_up_set, look_up_level_set, look_up_type_set, new_vars, 
       property_annotation, ret_obj, ret_obj_type_set, ret_prop, ret_right, stmts; 
    
-   property_annotation = this.property_annotations[this.annotation_index];
-   this.annotation_index++;  
+   property_annotation = prop_assign_expr.left.property.property_set;
     
    ret_obj = this.typeCheck(prop_assign_expr.left.object, type_env); 
    ret_prop = this.typeCheck(prop_assign_expr.left.property, type_env); 
@@ -344,8 +368,10 @@ sec_types.typeCheckPropertyAssignmentExpr = function (prop_assign_expr, type_env
    cond_type = this.conds.when(ret_right.type_set, look_up_type_set, this.isSubType);
    cond_level = this.conds.when(lev_set_obj_prop, look_up_level_set, lat.leq);
    if (!cond_type || !cond_level) {
-      alert('Typing Error: Illegal Assignment'); 
-      throw new Error('Typing Error: Illegal Assignment'); 
+      //alert('Typing Error: Illegal Assignment'); 
+      err = new Error('Typing Error: Illegal Assignment');
+      err.typing_error = true; 
+      throw err; 
    }
 
    compiled_assignment_stmt = window.esprima.delegate.createAssignmentExpression('=', 
@@ -384,8 +410,7 @@ sec_types.typeCheckInExpr = function (in_expr, type_env) {
       look_up_level_set, new_vars, new_var_name, property_annotation, 
       type_set, stmts; 
       
-   property_annotation = this.property_annotations[this.annotation_index];
-   this.annotation_index++;  
+   property_annotation = in_expr.property_set;
    
    ret_prop = this.typeCheck(in_expr.left, type_env);
    ret_obj = this.typeCheck(in_expr.right, type_env);
@@ -424,11 +449,10 @@ sec_types.typeCheckInExpr = function (in_expr, type_env) {
 };
 
 sec_types.typeCheckDeleteExpr = function (delete_expr, type_env) {
-   var compiled_delete_stmt, cond, level_set, lev_set_obj, lev_set_obj_prop, lev_set_prop, look_up_set, 
+   var compiled_delete_stmt, cond, err, level_set, lev_set_obj, lev_set_obj_prop, lev_set_prop, look_up_set, 
           look_up_level_set, new_vars, property_annotation, ret_obj, ret_obj_type_set, ret_prop, stmts; 
    
-   property_annotation = this.property_annotations[this.annotation_index];
-   this.annotation_index++;  
+   property_annotation = delete_expr.argument.property.property_set;
    
    ret_obj = this.typeCheck(delete_expr.argument.object, type_env);
    ret_prop = this.typeCheck(delete_expr.argument.property, type_env);
@@ -445,8 +469,10 @@ sec_types.typeCheckDeleteExpr = function (delete_expr, type_env) {
    
    cond = this.conds.when(lev_set_obj_prop, look_up_level_set, lat.leq);
    if (!cond) {
-      alert('Typing Error: Illegal Assignment'); 
-      throw new Error('Typing Error: Illegal Assignment'); 
+      //alert('Typing Error: Illegal Assignment'); 
+      err =  new Error('Typing Error: Illegal Assignment'); 
+      err.typing_error = true;  
+      throw err; 
    }
    
    compiled_delete_stmt = window.esprima.delegate.createMemberExpression('[', 
@@ -473,7 +499,7 @@ sec_types.typeCheckDeleteExpr = function (delete_expr, type_env) {
 
 sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
    var assignment, compiled_alternate, compiled_consequent, compiled_if_stmt, cond, cond_false, 
-      cond_true, level_set, level_set_alternate, level_set_consequent, level_set_consequent_alternate, 
+      cond_true, err, level_set, level_set_alternate, level_set_consequent, level_set_consequent_alternate, 
       lev_set_test, new_var_name, new_vars, ret_alternate, ret_consequent, ret_test,   
       type_set, type_set_alternate, type_set_consequent;  
    
@@ -483,17 +509,24 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
    
    new_var_name = this.generateNewVarName(); 
    new_vars = ret_test.new_vars.concat(ret_consequent.new_vars);
-   new_vars = new_vars.concat(ret_alternate.new_vars);
+   new_vars = ret_alternate ? new_vars.concat(ret_alternate.new_vars) : new_vars;
    new_vars.push(new_var_name); 
    
    lev_set_test = this.conds.levLog(ret_test.type_set); 
-   level_set_consequent = ret_consequent.level_set; 
-   level_set_alternate = ret_alternate.level_set;
-   level_set_consequent_alternate = this.conds.genFun(level_set_consequent, level_set_alternate, lat.glb); 
+   level_set_consequent = ret_consequent.level_set;
+   if (ret_alternate) {
+      level_set_alternate = ret_alternate.level_set;
+      level_set_consequent_alternate = this.conds.genFun(level_set_consequent, level_set_alternate, lat.glb);   	
+   } else {
+   	  level_set_consequent_alternate = level_set_consequent; 
+   }
    cond = this.conds.when(lev_set_test, level_set_consequent_alternate, lat.leq);
+   
    if (!cond) {
-      alert('Typing Error: Illegal Assignment'); 
-      throw new Error('Typing Error: Illegal Assignment'); 
+      //alert('Typing Error: Illegal Memory Update Inside High Conditional'); 
+      err = new Error('Typing Error: Illegal Memory Update Inside High Conditional');
+      err.typing_error; 
+      throw err; 
    }
    
    assignment = window.esprima.delegate.createAssignmentExpression('=', 
@@ -503,13 +536,16 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
    ret_consequent.stmts.push(assignment); 
    compiled_consequent = window.esprima.delegate.createBlockStatement(ret_consequent.stmts);
    
-   assignment = window.esprima.delegate.createAssignmentExpression('=', 
-   	  window.esprima.delegate.createIdentifier(new_var_name), 
-   	  ret_alternate.expr);
-   assignment = window.esprima.delegate.createExpressionStatement(assignment);  
-   ret_alternate.stmts.push(assignment); 
-   compiled_alternate = window.esprima.delegate.createBlockStatement(ret_alternate.stmts); 
+   if (ret_alternate) {
+      assignment = window.esprima.delegate.createAssignmentExpression('=', 
+   	     window.esprima.delegate.createIdentifier(new_var_name), 
+   	     ret_alternate.expr);
+      assignment = window.esprima.delegate.createExpressionStatement(assignment);  
+      ret_alternate.stmts.push(assignment); 
+      compiled_alternate = window.esprima.delegate.createBlockStatement(ret_alternate.stmts); 
+   }
    
+   compiled_alternate = compiled_alternate ? compiled_alternate : null; 
    compiled_if_stmt = window.esprima.delegate.createIfStatement(ret_test.expr, compiled_consequent, compiled_alternate);
    compiled_if_stmt = this.buildIfWrapper([compiled_if_stmt], cond); 
    stmts = ret_test.stmts;  
@@ -517,16 +553,24 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
    
    cond_false = this.conds.buildElementaryCond(ret_test.expr, [false, undefined, 0, null]);
    cond_true = this.conds.buildUnaryCond('!', $.extend(true, {}, cond_false));
-       
-   type_set_consequent = ret_consequent.type_set; 
-   type_set_alternate = ret_alternate.type_set;
+   
+   type_set_consequent = ret_consequent.type_set;
    sec_types.conds.condExp(type_set_consequent, cond_true);
-   sec_types.conds.condExp(type_set_alternate, cond_false); 
-   type_set = type_set_consequent.concat(type_set_alternate);
+   if (ret_alternate) { 
+      type_set_alternate = ret_alternate.type_set;
+      sec_types.conds.condExp(type_set_alternate, cond_false); 
+      type_set = type_set_consequent.concat(type_set_alternate);
+   } else {
+   	  type_set = type_set_consequent; 
+   }
    
    sec_types.conds.condExp(level_set_consequent, cond_true);
-   sec_types.conds.condExp(level_set_alternate, cond_true);  
-   level_set = level_set_consequent.concat(level_set_alternate); 
+   if (ret_alternate) {
+      sec_types.conds.condExp(level_set_alternate, cond_false);  
+      level_set = level_set_consequent.concat(level_set_alternate); 	
+   } else {
+   	  level_set = level_set_consequent; 
+   }
    level_set = this.conds.genFun(ret_test.level_set, level_set, lat.glb);
    
    return {
@@ -539,7 +583,7 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
 }; 
 
 sec_types.typeCheckWhileStmt = function (while_stmt, type_env) {
-   var compiled_body, compiled_while_stmt, cond, level_set, level_set_body, lev_set_test, 
+   var compiled_body, compiled_while_stmt, cond, err, level_set, level_set_body, lev_set_test, 
       new_vars, ret_body, ret_test, stmts; 
       
    ret_test = this.typeCheck(while_stmt.test, type_env);
@@ -549,8 +593,10 @@ sec_types.typeCheckWhileStmt = function (while_stmt, type_env) {
    level_set_body = ret_body.level_set;  
    cond = this.conds.when(lev_set_test, level_set_body, lat.leq);
    if (!cond) {
-      alert('Typing Error: Illegal While Statement'); 
-      throw new Error('Typing Error: Illegal While Statement'); 
+      //alert('Typing Error: Illegal While Statement'); 
+      err = new Error('Typing Error: Illegal While Statement');
+      err.typing_error = true; 
+      throw err; 
    }
    
    compiled_body = window.esprima.delegate.createBlockStatement(ret_body.stmts); 
@@ -603,7 +649,7 @@ sec_types.typeCheckCallExpr = function (call_expr, type_env) {
 }; 
 
 sec_types.typeCheckFunCallExpr = function (fun_call_expr, type_env) {
-   var arg_types, fun_type, i, len, level_set, new_vars, processed_args, ret_args, ret_callee, ret_type, stmts;
+   var arg_types, err, fun_type, i, len, level_set, new_vars, processed_args, ret_args, ret_callee, ret_type, stmts;
   
    ret_callee = this.typeCheck(fun_call_expr.callee, type_env);
    ret_args = []; 
@@ -627,20 +673,26 @@ sec_types.typeCheckFunCallExpr = function (fun_call_expr, type_env) {
    }
    
    if (fun_type.parameter_types.length != arg_types.length) {
-      alert('Typing Error: Illegal Function Call'); 
-      throw new Error('Typing Error: Illegal Function Call');
+      //alert('Typing Error: Illegal Function Call'); 
+      err = new Error('Typing Error: Illegal Function Call');
+      err.typing_error = true; 
+      throw err; 
    }
    
    for (i = 0, len = arg_types.length; i < len; i++) {
       if(!this.isSubType(arg_types[i], fun_type.parameter_types[i])) {
-          alert('Typing Error: Illegal Function Call'); 
-          throw new Error('Typing Error: Illegal Function Call');
+          //alert('Typing Error: Illegal Function Call'); 
+          err = new Error('Typing Error: Illegal Function Call');
+          err.typing_error = true;
+          throw err; 
       }
    }
    
    if (!lat.leq(fun_type.level, fun_type.context_level)) {
-      alert('Typing Error: Illegal Function Call'); 
-      throw new Error('Typing Error: Illegal Function Call');
+      //alert('Typing Error: Illegal Function Call'); 
+      err = new Error('Typing Error: Illegal Function Call');
+      err.typing_error = true;
+      throw err; 
    }
    
    ret_type = fun_type.ret_type; 
@@ -657,7 +709,7 @@ sec_types.typeCheckFunCallExpr = function (fun_call_expr, type_env) {
 }; 
 
 sec_types.typeCheckMethodCallExpr = function (method_call_expr, type_env) {
-   var arg_types, method_type, i, len, level_set, new_vars, processed_args, ret_args, ret_callee, ret_type, stmts;
+   var arg_types, err, method_type, i, len, level_set, new_vars, processed_args, ret_args, ret_callee, ret_type, stmts;
   
    property_annotation = this.property_annotations[this.annotation_index];
    this.annotation_index++;  
@@ -689,20 +741,26 @@ sec_types.typeCheckMethodCallExpr = function (method_call_expr, type_env) {
    }
    
    if (method_type.parameter_types.length != arg_types.length) {
-      alert('Typing Error: Illegal Function Call'); 
-      throw new Error('Typing Error: Illegal Function Call');
+      //alert('Typing Error: Illegal Function Call'); 
+      err = new Error('Typing Error: Illegal Method Call');
+      err.typing_error = true; 
+      throw err; 
    }
    
    for (i = 0, len = arg_types.length; i < len; i++) {
       if(!this.isSubType(arg_types[i], method_type.parameter_types[i])) {
-          alert('Typing Error: Illegal Function Call'); 
-          throw new Error('Typing Error: Illegal Function Call');
+          //alert('Typing Error: Illegal Function Call');
+          err = new Error('Typing Error: Illegal Method Call');
+          err.typing_error = true;  
+          throw err; 
       }
    }
    
    if (!lat.leq(method_type.level, method_type.context_level)) {
-      alert('Typing Error: Illegal Function Call'); 
-      throw new Error('Typing Error: Illegal Function Call');
+      //alert('Typing Error: Illegal Function Call');
+      err = new Error('Typing Error: Illegal Method Call');
+      err.typing_error = true;
+      throw err;
    }
    
    ret_type = method_type.ret_type; 

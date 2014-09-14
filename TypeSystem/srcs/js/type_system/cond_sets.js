@@ -100,7 +100,7 @@ sec_types.conds.condExp = function (cond_set, cond) {
 sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond) {
    var cond, obj_type_domain, new_prop_set, prop, prop_var, triples;
    
-   // Statically we know the property that is being accessed
+   // Statically, we know the property that is being accessed
    if (prop_expr_st.type === 'Literal') {
       prop = prop_expr_st.value; 
       if (obj_type.row_type.hasOwnProperty(prop)) {
@@ -139,8 +139,9 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
    } 
    
    obj_type_domain =  sec_types.objTypeDomain(obj_type);
-   if (prop_set !== sec_types.STR) {
-      new_prop_set = this.setSubtract(prop_set, obj_type_domain);
+   if (!prop_set.all_strings) {
+      new_prop_set = this.setSubtract(prop_set.properties, obj_type_domain);
+      if (new_prop_set.length === 0) return triples; 
       cond = this.buildElementaryCond(prop_var, new_prop_set);
       cond = this.buildBinaryCond('&&', obj_cond, cond); 
       triples.push({
@@ -257,6 +258,10 @@ sec_types.lubType = function (left_type, right_type) {
    return false;
 }; 
 
+
+/*
+ * Type Constructors
+ */
 sec_types.buildPrimType = function (level) {
    return {
       type_name: 'PRIM',
@@ -297,11 +302,80 @@ sec_types.objTypeDomain = function (obj_type) {
    return props; 
 }; 
 
-sec_types.conds.belongsTo = function (prop, prop_set) {
-   if (prop_set === sec_types.STR) return true; 
 
-   for (var i = 0, len = prop_set.length; i < len; i++) {
-       if (prop_set[i] === prop) return true;
+/*
+ * Print methods
+ */
+sec_types.printType = function (type) {
+   var fun, redirector, str; 
+   
+   redirector = {
+      PRIM: sec_types.printPrimType, 
+      OBJ: sec_types.printObjType, 
+      FUN: sec_types.printFunType
+   };
+   
+   fun = redirector[type.type_name];
+   str = fun.call(sec_types, type);
+   
+   return str; 
+};
+
+sec_types.printPrimType = function (type) {
+	return 'PRIM^{' + lat.print(type.level) + '}';
+};
+
+sec_types.printObjType = function (type) {
+	var i, prop, prop_level, prop_type, str, type; 
+	
+	str = 'OBJ<' + type.type_var + '><';
+	i = 0;
+	
+	for (prop in type.row_type){
+		if (type.row_type.hasOwnProperty(prop)) {
+		   prop_level = type.row_type[prop].level; 
+		   prop_type = type.row_type[prop].type; 
+		   
+		   if (i > 0) str += ', ';
+		   str += prop +'^{' + lat.print(prop_level) + '}: ' + sec_types.printType(prop_type); 	
+		   
+		   i++; 
+		}
+	}
+	
+	if (type.star_type) {
+		if (i > 0) str += ', ';
+		str += '*^{' + lat.print(type.star_level) + '}: ' + sec_types.printType(type.star_type);
+	}
+	
+	str += '>^{' + lat.print(type.level) + '}';
+	return str; 
+};
+
+sec_types.printFunType = function (type) {
+   var i, str; 
+   
+   str = 'FUN<'; 
+   str += sec_types.printType(type.this_type);
+   str += '.(';
+   
+   for (i = 0; i < type.parameter_types.length; i++) {
+   	  if (i > 0) str += ', ';
+      str += sec_types.printType(type.parameter_types[i]);	
+   }
+   
+   str += ') ->^{ ' + lat.print(type.level) + '} ';
+   
+   str += sec_types.printType(type.ret_type);
+   str += '>^{' + lat.print(type.level) + '}';
+   return str; 
+};
+
+sec_types.conds.belongsTo = function (prop, prop_set) {
+   if (prop_set.all_strings) return true; 
+
+   for (var i = 0, len = prop_set.properties.length; i < len; i++) {
+       if (prop_set.properties[i] === prop) return true;
    }
    return false; 
 };
@@ -322,8 +396,9 @@ sec_types.conds.setSubtract = function (left_set, right_set) {
    return new_set; 
 };
 
+
 /*
- * Formulas
+ * Formula Constructors
  */
 sec_types.conds.isUnaryOperator = function (op) {
    return op === '!'; 
@@ -351,6 +426,36 @@ sec_types.conds.buildElementaryCond = function (var_name, property_set) {
    }; 
 }; 
 
+
+/*
+ * Formula Testers
+ */
+sec_types.conds.isUnaryCond = function (cond) {
+   return cond.hasOwnProperty('arg'); 
+};
+
+sec_types.conds.isBinaryCond = function (cond) {
+   return cond.hasOwnProperty('left'); 
+};
+
+sec_types.conds.isElementaryCond = function (cond) {
+   return cond.hasOwnProperty('var_name'); 
+};
+
+sec_types.conds.getCondType = function (cond) {
+   if (cond.hasOwnProperty('arg')) return 'UNARY';
+   
+   if (cond.hasOwnProperty('left')) return 'BINARY';
+   
+   if (cond.hasOwnProperty('var_name')) return 'ELEMENTARY';
+   
+   throw new Error ('Illegal Runtime Assertion');
+};
+
+
+/*
+ * Formulas: Auxiliar Constructors
+ */
 sec_types.conds.buildMultipleCond = function (operator, args) {
    var cond, i, len; 
    if (!args || (args.length === 0)) return 'true';
@@ -404,10 +509,75 @@ sec_types.conds.simplifyCond = function (cond) {
    
 };
 
+/*
+ * Printing Formulas
+ */
+sec_types.conds.printUnaryCond = function (cond) {
+   var str; 
+   
+   str = cond.operator + '(' + sec_types.conds.printCond(cond.arg) + ')'; 
+   return str;
+}; 
+
+sec_types.conds.printBinaryCond = function (cond) {
+   var str, str_left, str_right; 
+   
+   str_left = sec_types.conds.printCond(cond.left); 
+   str_right = sec_types.conds.printCond(cond.right); 
+   
+   str_left = sec_types.conds.isBinaryCond(cond.left) ? str_left = '(' + str_left + ')' : str_left; 
+   str_right = sec_types.conds.isBinaryCond(cond.right) ? str_right = '(' + str_right + ')' : str_right;
+  
+   str = str_left + ' ' + cond.operator + ' ' + str_right; 
+   return str;
+}; 
+
+sec_types.conds.printElementaryCond = function (cond) {
+   var prop_set_str, str, var_name; 
+  
+   var_name = cond.var_name; 
+   prop_set_str = sec_types.conds.printPropertySet(cond.property_set);
+   str = var_name + ' in ' + prop_set_str; 
+   return str;
+}; 
+
+sec_types.conds.printCond = function (cond) {
+   var cond_type, fun, printing_functions, str; 
+   
+   if ((typeof cond === 'string') && (cond === 'true')) return 'true';
+   
+   cond_type = sec_types.conds.getCondType(cond); 
+   
+   printing_functions = {
+      UNARY:   sec_types.conds.printUnaryCond, 
+      BINARY: sec_types.conds.printBinaryCond, 
+      ELEMENTARY: sec_types.conds.printElementaryCond
+   };
+   
+   fun = printing_functions[cond_type];
+   str = fun.call(this, cond);
+   return str; 
+};
+
+sec_types.conds.printPropertySet = function (property_set) {
+   var i, len, str; 
+   
+   if (property_set.length === 0) return '[]';
+   
+   str = '{'; 
+   str += property_set[0];
+   for (i = 1, len = property_set.length; i < len; i++) {
+      str += ', ';
+      str += property_set[i]; 
+   }
+   str += '}';
+   return str;
+};
 
 
 /*
-*/
+ * Generating ASTs for runtime assertions!
+ */
 sec_types.buildPropertyPredicateST = function (property_predicate) {
    var operator, property_set_str, ret_expr_st, str;
    
@@ -460,8 +630,38 @@ sec_types.buildCondST = function (cond) {
    return cond_st;
 }; 
 
+/*
+ * Print Type Set and Level Set
+ */
+sec_types.conds.printTypeSet = function (type_set) {
+	var i, str;
+	 
+	str = ''; 
+	for (i = 0; i < type_set.length; i++) {
+	   if (i > 0) {
+	      str += '\n';
+	   }
+	   str += sec_types.printType(type_set[i].element); 
+	   str += ' ? ';
+	   str += sec_types.conds.printCond(type_set[i].cond);
+	}
+	return str; 
+};
 
-
+sec_types.conds.printLevelSet = function (level_set) {
+	var i, str;
+	 
+	str = ''; 
+	for (i = 0; i < level_set.length; i++) {
+	   if (i > 0) {
+	      str += '\n';
+	   }
+	   str += lat.print(level_set[i].element); 
+	   str += ' ? ';
+	   str += sec_types.conds.printCond(level_set[i].cond);
+	}
+	return str; 
+};
 
 
 

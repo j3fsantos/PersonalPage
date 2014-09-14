@@ -83,9 +83,11 @@ type_parser.parseObjType = function (left_index) {
    ret = this.parseRowType(index); 
    row_type = ret.row_type; 
    index = ret.index; 
+   star_type = ret.star_type; 
+   star_level = ret.star_level; 
    
-   // parse star type: <0, PRIM^{0}>
-   // compute star_type
+   // Old Parsing Star Type:  <0, PRIM^{0}>
+   /*
    if (this.full_str[index] === '<') {
       index++; 
       index = this.skip(index);
@@ -102,7 +104,7 @@ type_parser.parseObjType = function (left_index) {
       index = this.skip(index); 
       this.check_char(index, '>'); 
       index++; 
-   }
+   }*/
    
    //^{0}
    // compute level
@@ -127,10 +129,10 @@ type_parser.parseObjType = function (left_index) {
  * <p1^{sigma1}:  \tau_1, ..., pn^{sigman}: \tau_n>
  */
 type_parser.parseRowType = function (index) {
-   var c, full_str, index, level, prop, ret, row_type, type;  
+   var c, full_str, index, level, prop, ret, row_type, star_type, star_level, type;  
    
    full_str = this.full_str; 
-   row_type = {}; 
+   row_type = {};
    
    // check first char 
    this.check_char(index, '<'); 
@@ -166,7 +168,15 @@ type_parser.parseRowType = function (index) {
      index = this.skip(index);
    
      // Storage
-     row_type[prop] = {level: level, type: type};
+     if (prop !== '*') {
+        row_type[prop] = {level: level, type: type};	
+     } else {
+     	if (star_type) {
+     	   throw new Error('Star Type Already Defined');
+     	}
+     	star_type = type; 
+     	star_level = level;
+     }
        
      c = full_str[index];      
      if (c === ',') {
@@ -183,7 +193,9 @@ type_parser.parseRowType = function (index) {
    
    return {
       index: index, 
-      row_type: row_type 
+      row_type: row_type, 
+      star_type: star_type, 
+      star_level: star_level
    };  
 };
 
