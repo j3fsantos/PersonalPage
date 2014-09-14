@@ -140,6 +140,10 @@ input[type="button"]:active, input[type="submit"]:active {
 	width: 150px;
 }
 
+#output-holder {
+	display: none; 
+}
+
 
 
 

@@ -163,10 +163,12 @@ sec_types.typeCheckLiteral = function (st, type_env) {
 };
 
 sec_types.typeCheckIdentifier = function (st, type_env) { 
-   var compiled_assignment_stmt, new_var_name;
+   var compiled_assignment_stmt, err, new_var_name;
    
    if (!type_env.hasOwnProperty(st.name)) {
-     throw new Error('Typing Error: Incomplete Typing Environment');
+   	 err = new Error('Typing Error: Incomplete Typing Environment');
+   	 err.typing_error = true;
+     throw err; 
    }
    
    new_var_name = this.generateNewVarName(); 
@@ -525,7 +527,7 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
    if (!cond) {
       //alert('Typing Error: Illegal Memory Update Inside High Conditional'); 
       err = new Error('Typing Error: Illegal Memory Update Inside High Conditional');
-      err.typing_error; 
+      err.typing_error = 1; 
       throw err; 
    }
    
@@ -551,7 +553,7 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env) {
    stmts = ret_test.stmts;  
    stmts.push(compiled_if_stmt); 
    
-   cond_false = this.conds.buildElementaryCond(ret_test.expr, [false, undefined, 0, null]);
+   cond_false = this.conds.buildElementaryCond(ret_test.expr.name, [false, undefined, 0, null]);
    cond_true = this.conds.buildUnaryCond('!', $.extend(true, {}, cond_false));
    
    type_set_consequent = ret_consequent.type_set;

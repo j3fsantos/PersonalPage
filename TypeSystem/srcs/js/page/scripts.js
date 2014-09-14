@@ -42,7 +42,50 @@ window.addEventListener('load', function() {
    
    processCategories();
    catchange(0);
+   
+   //  #div-res-type, #div-res-writing-effect, #div-jso { display: none; }
+   $("#div-res-type").hide();
+   $("#div-res-writing-effect").hide();
+   //$("#div-jso").hide();
 });
+
+function handleOutputTypeDisplayChange () {
+	var div_instrumentation, div_type_output, div_writing_effect;
+	
+	div_type_output =  $("#div-res-type");
+	div_writing_effect = $("#div-res-writing-effect");
+	div_instrumentation = $("#div-jso");
+	
+	div_type_output.show();
+	div_writing_effect.hide();
+	div_instrumentation.hide();
+}
+
+function handleWritingEffectDisplayChange () {
+	var div_instrumentation, div_type_output, div_writing_effect; 
+	
+	div_type_output =  $("#div-res-type");
+	div_writing_effect = $("#div-res-writing-effect");
+	div_instrumentation = $("#div-jso");
+
+	div_type_output.hide();
+	div_writing_effect.show();
+	div_instrumentation.hide();
+}
+
+function handleInstrumentationDisplayChange () {
+	var div_instrumentation, div_type_output, div_writing_effect; 
+	
+	div_type_output =  $("#div-res-type");
+	div_writing_effect = $("#div-res-writing-effect");
+	div_instrumentation = $("#div-jso");
+
+	div_type_output.hide();
+	div_writing_effect.hide();
+	div_instrumentation.show();
+	
+	cm_output.setValue($('#output-holder').val());
+}
 
 function loadex () {
 	var current_cat_name, example, gamma, prop, selected_index, selector, type_str, types_text;
@@ -70,6 +113,7 @@ function loadex () {
     }
     
     cm_output.setValue('');
+    $('#output-holder').val('');
     $('#res-type').val('');
     $('#res-writing-effect').val('');      
 }
@@ -294,6 +338,7 @@ function typecheck () {
    var e, instrumentation, output, reading_effect, st, str, writing_effect; 
    
    cm_output.setValue('');
+   $('#output-holder').val('');
    $('#res-type').val('');
    $('#res-writing-effect').val('');      
    str = cm.getValue();
@@ -308,6 +353,7 @@ function typecheck () {
          instrumentation = output.instrumentation; 
          instrumentation = window.escodegen.generate(instrumentation, option);
          cm_output.setValue(instrumentation);
+         $('#output-holder').val(instrumentation);
          
          reading_effect = output.reading_effect;
          reading_effect = sec_types.conds.printTypeSet(reading_effect); 
