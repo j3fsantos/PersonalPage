@@ -7,13 +7,17 @@ type_parser.parseType = function (index) {
        parser_fun, 
        parser_table,
        ret;
-        
+   
+   index = type_parser.skip(index);     
    prefix = this.full_str.substring(index, index+2); 
    
    parser_table = {
       FU: 'parseFunType',
       OB: 'parseObjType', 
-      PR: 'parsePrimType'
+      PR: 'parsePrimType',
+      GL: 'parseGlobalType', 
+      '**': 'parseTypeName', 
+      '__': 'parseTypeVariable'
    };
    parser_fun = parser_table[prefix];
    
@@ -23,6 +27,55 @@ type_parser.parseType = function (index) {
    return ret;  
 };
 
+/*
+ * __k
+ */
+type_parser.parseTypeVariable = function (index) {
+   var ret, type; 
+   
+   ret = this.parseWord(index, [' ', '>', '\n', '\t', ')', ',', '.']);
+   type = sec_types.buildTypeVariable(ret.word);
+   index = ret.index; 
+   
+   return {
+      type: type, 
+      index: index, 
+   }; 
+};
+
+/*
+ * **type_name
+ */
+type_parser.parseTypeName = function (index) {
+   var ret, type; 
+   
+   ret = this.parseWord(index, [' ', '>', '\n', '\t', ')', ',', '.']);
+   type = $.extend(true, {}, my_types[ret.word]);
+   index = ret.index;    
+   type.my_type_name = ret.word; 
+
+   return {
+      type: type, 
+      index: index, 
+   }; 
+};
+
+/*
+ * GLOB
+ */
+type_parser.parseGlobalType = function (left_index) {
+   var index, type; 
+   
+   index = left_index; 
+   this.check_str(index, index+4, 'GLOB', 'Parser Expecting Global Type. Found: ' + this.full_str.substring(index,index+4)); 
+   index += 4; 
+         
+   type = sec_types.buildGlobalType(); 
+   return {
+      type: type, 
+      index: index
+   }; 
+};
 
 /*
  * PRIM^{\sigma}
@@ -129,7 +182,7 @@ type_parser.parseObjType = function (left_index) {
  * <p1^{sigma1}:  \tau_1, ..., pn^{sigman}: \tau_n>
  */
 type_parser.parseRowType = function (index) {
-   var c, full_str, index, level, prop, ret, row_type, star_type, star_level, type;  
+   var c, err, full_str, index, level, prop, ret, row_type, star_type, star_level, type;  
    
    full_str = this.full_str; 
    row_type = {};
@@ -138,6 +191,9 @@ type_parser.parseRowType = function (index) {
    this.check_char(index, '<'); 
    index++; 
    index = this.skip(index); 
+   
+   star_type = null; 
+   star_level = null; 
    
    while (true) {
    
@@ -172,7 +228,9 @@ type_parser.parseRowType = function (index) {
         row_type[prop] = {level: level, type: type};	
      } else {
      	if (star_type) {
-     	   throw new Error('Star Type Already Defined');
+     	   err = new Error('Star Type Already Defined');
+     	   err.parsing_error = true; 
+     	   throw err; 
      	}
      	star_type = type; 
      	star_level = level;

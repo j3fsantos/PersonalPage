@@ -144,8 +144,6 @@ Action type:
 See:
  <input type="radio" name="output_display" value="0" id="radbutton_type_output" onchange="handleOutputTypeDisplayChange();"/>
  <label for="tc">Type of the Output</label>
- <input type="radio" name="output_display" value="1" id="radbutton_writing effect" onchange="handleWritingEffectDisplayChange();" />
- <label for="pp">Writing Effect</label>
  <input type="radio" name="output_display" value="2" id="radbutton_Instrumentation" onchange="handleInstrumentationDisplayChange();" checked="checked"/>
  <label for="pp">Instrumentation</label>
 </p>
@@ -155,12 +153,6 @@ See:
 <b>Type of the Output:</b>
 <br />
 <textarea style="width:100%;height:200px;" id="res-type"> </textarea>
-</div>
-
-<div id="div-res-writing-effect">
-<b>Writing Effect:</b>
-<br />
-<textarea style="width:100%;height:200px;" id="res-writing-effect"> </textarea>
 </div>
 
 <div id="div-jso">
@@ -190,7 +182,7 @@ See:
 <p style="margin-top:0px">
 <table id="tablemytypes">	
 </table>
-<input type="button" value="Add Security Type" onclick="updateMyTypes();" />
+<input type="button" value="Define Security Type" onclick="updateMyTypes();" />
 </p>
 </fieldset></form>
 
@@ -226,150 +218,175 @@ Notes:
 		   	  <span class="desc">Value</span>
 		      <span class="prog_input">3</span>
               <span class="types"></span>
+              <span class="mytypes"></span>
 		   </div>
 		   	
 		   <div>
 		   	  <span class="desc">Variable - 1</span>
 		      <span class="prog_input">h</span>
               <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Variable - 2</span>
 		      <span class="prog_input">l</span>
               <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Binary Operatorion - 1</span>
 		      <span class="prog_input">l0 + h;</span>
               <span class="types">l0: PRIM^{0}&#10; l1: PRIM^{0}&#10; h: PRIM^{1}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Binary Operatorion - 2</span>
 		      <span class="prog_input">l0 + l1;</span>
               <span class="types">l0: PRIM^{0}&#10; l1: PRIM^{0}&#10; l2: PRIM^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Unary Operatorion - 1</span>
 		      <span class="prog_input">!l</span>
               <span class="types">l: PRIM^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		    <div>
 		   	  <span class="desc">Unary Operatorion - 2</span>
 		      <span class="prog_input">!h</span>
               <span class="types">h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
      	   <div>
 		   	  <span class="desc">Variable Assignment - 1</span>
 		      <span class="prog_input">h = l</span>
               <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Variable Assignment - 2</span>
 		      <span class="prog_input">l = h</span>
               <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Variable Assignment - 3</span>
 		      <span class="prog_input">l1 = l1 + l2</span>
               <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Variable Assignment - 4</span>
 		      <span class="prog_input">l1 = l1 + h</span>
               <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Variable Assignment - 5</span>
 		      <span class="prog_input">h = l1 + l2 + h</span>
               <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Property Look-up - 1</span>
 		      <span class="prog_input">l = o[y];</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Property Look-up - 2</span>
 		      <span class="prog_input">l = o[y; &lt;STR&gt;];</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Property Look-up - 3</span>
 		      <span class="prog_input">l = o[y; {p3, p4}];</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">Property Look-up - 4</span>
 		      <span class="prog_input">l = o[y; {p1, p5}];</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">Property Look-up - 5</span>
 		      <span class="prog_input">h = o[y];</span>
               <span class="types">h: PRIM^{5}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">In Expression - 1</span>
 		      <span class="prog_input">l = y in o;</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">In Expression - 2</span>
 		      <span class="prog_input">l = y in o;</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">In Expression - 3</span>
 		      <span class="prog_input">l = y in o;</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{1}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">In Expression - 4</span>
 		      <span class="prog_input">l = y in^{p1, p4} o;</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">Property Assignment - 1</span>
 		      <span class="prog_input">o1[y] = o2[x];</span>
               <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">Property Assignment - 2</span>
 		      <span class="prog_input">o1[y; {p1}] = o2[x; {q2, q1}];</span>
               <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">Property Assignment - 3</span>
 		      <span class="prog_input">o1[y; {p2}] = o2[x; {a2, q1}];</span>
               <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">Delete Expression - 1</span>
 		      <span class="prog_input">delete o[y];</span>
               <span class="types">y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
@@ -382,39 +399,137 @@ Notes:
 		      <span class="desc">Delete Expression - 3</span>
 		      <span class="prog_input">delete o[y; {p2}];</span>
               <span class="types">y: PRIM^{1}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">If - 1</span>
 		      <span class="prog_input">if (h) { l = 5 }</span>
               <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">If - 2</span>
 		      <span class="prog_input">if (h) { h = h + 1 } else { h = h - l}</span>
               <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">If - 3</span>
 		      <span class="prog_input">if (o[y]) { l = 0 }</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		   	  <span class="desc">If - 4</span>
 		      <span class="prog_input">if (o[y; {p1}]) { l = 0 }</span>
               <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
 		   </div>
 		   
 		   <div>
 		      <span class="desc">If - 5</span>
 		      <span class="prog_input">if (o1[y]) { o2[x] = 0; }</span>
               <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
 		   </div>
 		   
-
+		   <div>
+		      <span class="desc">While - 1</span>
+		      <span class="prog_input">l = input; while (input > 0) { input = input - 1; l = l*input; }</span>
+              <span class="types">l: PRIM^{0}&#10; input: PRIM^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+           
+           <div>
+		      <span class="desc">While - 2</span>
+		      <span class="prog_input">l = input; while (input > 0) { input = input - 1; l = l*input; }</span>
+              <span class="types">l: PRIM^{0}&#10; input: PRIM^{2}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+           <div>
+		      <span class="desc">While - 3</span>
+		      <span class="prog_input">h = input; while (input > 0) { input = input - 1; h = h*input; }</span>
+              <span class="types">h: PRIM^{2}&#10; input: PRIM^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">While - 4</span>
+		      <span class="prog_input">h = input; while (input > 0) { input = input - 1; h = h*input; }</span>
+              <span class="types">h: PRIM^{2}&#10; input: PRIM^{2}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+   </div>
+   
+   <div class="category" name="func">
+   	       
+   	       <div>
+		      <span class="desc">Funcall - 1</span>
+		      <span class="prog_input">h = f(3);</span>
+              <span class="types">h: PRIM^{5}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Funcall - 2</span>
+		      <span class="prog_input">l = f(3);</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Funcall - 3</span>
+		      <span class="prog_input">l = f(3);</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Funcall - 4</span>
+		      <span class="prog_input">l = f(3);</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;**o1.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		    <div>
+		      <span class="desc">Method Call - 1</span>
+		      <span class="prog_input">l = o['q'](4); </span>
+              <span class="types">l: PRIM^{0}&#10; o: **o1&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{2} PRIM^{3}&gt;^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Method Call - 2</span>
+		      <span class="prog_input">h = o['q'](4); </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{2} PRIM^{3}&gt;^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Method Call - 3</span>
+		      <span class="prog_input">if (h) { o['q'](4); } </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{2} PRIM^{3}&gt;^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Function Literal - 1</span>
+		      <span class="prog_input">f = function (x) { return l;};</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{2}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Function Literal - 2</span>
+		      <span class="prog_input">f = function (x) { return h;};</span>
+              <span class="types">h: PRIM^{4}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{2}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
    </div>
 </div>
 
@@ -433,6 +548,23 @@ Notes:
 	<b>Security Type:</b> <br />
 	<div style="width:100%; height:100px;" class="type_text" > </div>
 </div>
+
+<div id="my-type-insertion-dialog">
+	<b>Type Name</b> &nbsp;
+    <input type="text" id="type_name" /> 
+    <br />
+	<b>Edit Type</b> <br />
+	<textarea style="width:100%; height:100px;" > </textarea>
+</div>
+
+<div id="my-type-update-dialog">
+    <b>Type Name:</b> &nbsp;
+    <span class="type_name"> </span> 
+    <br />
+	<b>Security Type:</b> <br />
+	<div style="width:100%; height:100px;" class="type_text" > </div>
+</div>
+
 
 
 </body>

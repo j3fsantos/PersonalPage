@@ -24,6 +24,7 @@ var atab = "intro";
 
 // typing
 var typing_environment = {};
+var my_types = {}; 
 
 window.addEventListener('load', function() {
    var i; 
@@ -36,6 +37,14 @@ window.addEventListener('load', function() {
    category_select = document.getElementById('cat');
    example_select = document.getElementById('ex');
    
+   $(category_select).change(function(){
+      var selected_index; 
+      
+      selected_index = $(this)[0].selectedIndex;
+      current_cat_index = selected_index; 
+      catchange(); 
+   });
+   
    for (i=0; i < category_names.length; i++) {
       category_select.options.add(new Option(category_names[i], i));
    }
@@ -45,43 +54,25 @@ window.addEventListener('load', function() {
    
    //  #div-res-type, #div-res-writing-effect, #div-jso { display: none; }
    $("#div-res-type").hide();
-   $("#div-res-writing-effect").hide();
-   //$("#div-jso").hide();
 });
 
 function handleOutputTypeDisplayChange () {
-	var div_instrumentation, div_type_output, div_writing_effect;
+	var div_instrumentation, div_type_output;
 	
 	div_type_output =  $("#div-res-type");
-	div_writing_effect = $("#div-res-writing-effect");
 	div_instrumentation = $("#div-jso");
 	
 	div_type_output.show();
-	div_writing_effect.hide();
-	div_instrumentation.hide();
-}
-
-function handleWritingEffectDisplayChange () {
-	var div_instrumentation, div_type_output, div_writing_effect; 
-	
-	div_type_output =  $("#div-res-type");
-	div_writing_effect = $("#div-res-writing-effect");
-	div_instrumentation = $("#div-jso");
-
-	div_type_output.hide();
-	div_writing_effect.show();
 	div_instrumentation.hide();
 }
 
 function handleInstrumentationDisplayChange () {
-	var div_instrumentation, div_type_output, div_writing_effect; 
+	var div_instrumentation, div_type_output; 
 	
 	div_type_output =  $("#div-res-type");
-	div_writing_effect = $("#div-res-writing-effect");
 	div_instrumentation = $("#div-jso");
 
 	div_type_output.hide();
-	div_writing_effect.hide();
 	div_instrumentation.show();
 	
 	cm_output.setValue($('#output-holder').val());
@@ -95,12 +86,29 @@ function loadex () {
 	example = examples_by_cat[current_cat_index][selected_index];
 	cm.setValue(example.prog_input);
 	
+	// my types - named types
+    selector = '#example_categories div.category[name='+current_cat_name+'] div';
+	types_text = $('.mytypes', $($(selector)[selected_index])).text();  
+	
+	type_parser.full_str = types_text; 
+    gamma = type_parser.parseVariableTypes();
+    my_types = {}; 
+    domClearMyTypes();
+   
+    for (prop in gamma) {
+    	if (gamma.hasOwnProperty(prop)) {
+           my_types[prop] = gamma[prop]; 
+           type_str = sec_types.printType(gamma[prop]);
+           domRegisterMyType(prop, type_str);
+    	}
+    }
+   
+	//typing environment 
 	selector = '#example_categories div.category[name='+current_cat_name+'] div';
 	types_text = $('.types', $($(selector)[selected_index])).text();  
 	
-    type_parser.full_str = types_text; 
+	type_parser.full_str = types_text; 
     gamma = type_parser.parseVariableTypes();
-     
     typing_environment = {}; 
     domClearSecurityTypes();
    
@@ -110,7 +118,7 @@ function loadex () {
            type_str = sec_types.printType(gamma[prop]);
            domRegisterSecurityType(prop, type_str);
     	}
-    }
+    } 
     
     cm_output.setValue('');
     $('#output-holder').val('');
@@ -123,12 +131,26 @@ function refreshSecurityTypes () {
 	
 	domClearSecurityTypes();
 	for (prop in typing_environment) {
-	   type_str = sec_types.printType(typing_environment[prop]);
-	   domRegisterSecurityType(prop, type_str);
+	   if (typing_environment.hasOwnProperty(prop)) {
+	      type_str = sec_types.printType(typing_environment[prop]);
+	      domRegisterSecurityType(prop, type_str);
+	   }
 	}
 }
 
-function catchange(j) {
+function refreshMyTypes () {
+	var prop, type_str; 
+	
+	domClearMyTypes();
+	for (prop in my_types) {
+	   if (my_types.hasOwnProperty(prop)) {
+	      type_str = sec_types.printType(my_types[prop]);
+	      domRegisterMyType(prop, type_str);
+	   }
+	}
+}
+
+function catchange() {
    var current_cat, i; 
    
    current_cat = examples_by_cat[current_cat_index];
@@ -136,6 +158,14 @@ function catchange(j) {
    for (i = 0; i < current_cat.length; i++) {
      example_select.options.add(new Option(current_cat[i].desc, i));
    }
+}
+
+function findCatIndex (catname) {
+	for (i = 0, len = category_names.length; i < len; i++) {
+		if (catname === category_names[i])
+		   return i;
+	}
+	throw new Error ('Looking for an example category that does not exist!');
 }
 
 function tab(id) {
@@ -150,7 +180,7 @@ function tab(id) {
 var processCategories = function () {
    var i; 
    
-   $('#example_categories div').each(function(index) {
+   $('#example_categories > div').each(function(index) {
    	  var cat_name; 
    	  cat_name = $(this).attr('name'); 
    	  category_names.push(cat_name);
@@ -193,6 +223,15 @@ function domClearSecurityTypes () {
 	} 
 }
 
+function domClearMyTypes () {
+	var i, number_of_rows;
+	
+	number_of_rows = $('#tablemytypes')[0].rows.length; 
+	for (i = number_of_rows-1; i >= 0; i--) {
+		$('#tablemytypes')[0].deleteRow(i);
+	} 
+}
+
 function domRegisterSecurityType (var_name, type) {
    var index, new_tr, td_type, td_var_name;
  
@@ -208,8 +247,7 @@ function domRegisterSecurityType (var_name, type) {
    new_tr = $(document.createElement('tr'));
    new_tr.append(td_var_name); 
    new_tr.append(td_type);
-   
-   index = $('#tabletypeenv')[0].rows.length; 
+   index = $('#tabletypeenv')[0].rows.length; 	
    
    new_tr.click(function() {
    	  var type; 
@@ -242,8 +280,59 @@ function domRegisterSecurityType (var_name, type) {
    });
 
    $('#tabletypeenv').append(new_tr);
-
 }
+
+
+function domRegisterMyType (type_name, type) {
+   var index, new_tr, td_type, td_type_name;
+ 
+   td_type_name = $(document.createElement('td'));
+   td_type_name.text(type_name+':');
+   td_type_name.toggleClass('tdtypename');
+	       
+         
+   td_type = $(document.createElement('td'));
+   td_type.text(type);
+   td_type.toggleClass('tdtypestring');
+	      
+   new_tr = $(document.createElement('tr'));
+   new_tr.append(td_type_name); 
+   new_tr.append(td_type);
+   index = $('#tablemytypes')[0].rows.length; 	
+   
+   new_tr.click(function() {
+   	  var type; 
+   	  
+   	  $('#my-type-update-dialog .type_name').text(type_name);
+   	  type =  $('.tdtypestring', $($('#tablemytypes')[0].rows[index])).text();
+      $('#my-type-update-dialog .type_text').text(type);
+   	  
+   	  $('#my-type-update-dialog').dialog({
+         title: 'Update My Type', 
+	     buttons: {
+	       'Remove My Type': function () {
+	       	   delete my_types[type_name];
+	       	   refreshMyTypes();   
+	           $(this).dialog('close');
+	         }, 
+	         
+	       'Edit Type': function () {
+	       	   updateMyTypes(type_name, type, index);
+	       	   $(this).dialog('close');
+	         }, 
+	         
+	       Done: function () {
+	    	   $(this).dialog('close');
+	         } 
+	       
+           }, 
+         width: 600
+         });
+   });
+
+   $('#tablemytypes').append(new_tr);
+}
+
 
 function registerSecurityType (var_name, type) {
    var parsed_type, ret;
@@ -267,6 +356,27 @@ function registerSecurityType (var_name, type) {
    return true; 
 }
 
+function registerMyType (type_name, type) {
+   var parsed_type, ret;
+   
+   if (my_types.hasOwnProperty(type_name)) {
+      alert('Type ' + type_name + ' already defined. You must delete it first!');
+	  return false;
+   }
+	       
+   try {
+      type_parser.full_str = type;
+      ret = type_parser.parseType(0);
+	  parsed_type = ret.type;
+	  my_types[type_name] = parsed_type;
+   } catch (e) {
+	  alert('Illegal Type!');
+	  return false; 
+   }
+	       
+   domRegisterMyType (type_name, type);
+   return true; 
+}
 
 function updateSecurityType (var_name, type, index) {
    var parsed_type, ret, td_type;
@@ -287,6 +397,30 @@ function updateSecurityType (var_name, type, index) {
    }
          
    td_type = $('.tdtypestring', $($('#tabletypeenv')[0].rows[index])); 
+   td_type.text(type);
+            
+   return true; 
+}
+
+function updateMyType (type_name, type, index) {
+   var parsed_type, ret, td_type;
+   
+   if (!my_types.hasOwnProperty(type_name)) {
+      alert('Type ' + type_name + ' has not been defined yet!');
+	  return false;
+   }
+	       
+   try {
+      type_parser.full_str = type;
+	  ret = type_parser.parseType(0);
+	  parsed_type = ret.type; 
+	  my_types[type_name] = parsed_type;
+   } catch (e) {
+	  alert('Illegal Type!');
+	  return false; 
+   }
+         
+   td_type = $('.tdtypestring', $($('#tablemytypes')[0].rows[index])); 
    td_type.text(type);
             
    return true; 
@@ -333,6 +467,55 @@ function updateTypingEnvironment (var_name, type, index) {
       width: 600  
    });
 }
+
+function updateMyTypes (type_name, type, index) {
+   var is_edit = false; 
+   
+   type =  $('.tdtypestring', $($('#tablemytypes')[0].rows[index])).text();
+   
+   if (type_name) {
+      is_edit = true; 
+      $('#my-type-insertion-dialog #type_name').val(type_name); 
+      $('#my-type-insertion-dialog textarea').val(type);
+   }	
+	
+   $('#my-type-insertion-dialog').dialog({
+      title: 'Add My Type', 
+	  buttons: {
+	    Register: function () {
+	       var parsed_type, ret, span_type, span_var_name, text_node, type, var_name; 
+	       
+	       type_name = $('#type_name').val(); 
+	       type = $('textarea', this).val();
+	       
+	       ret = sec_types.isLegalTypeName(type_name);
+	       if (!ret.is_legal) {
+	          $('#type_name').val('**'+type_name);
+	          alert(ret.message);
+	          return;
+	       }
+	       
+	       if (!is_edit && registerMyType (type_name, type)) {
+	            $('#type_name').val('');
+	            $('textarea', this).val('');
+	       }
+	       
+	       if (is_edit && updateMyType (type_name, type, index)) {
+	            $('#type_name').val('');
+	            $('textarea', this).val('');
+	       }
+	       
+	       $(this).dialog('close');
+	    }, 
+	    
+	    Done: function () {
+	    	$(this).dialog('close');
+	    }
+      }, 
+      width: 600  
+   });
+}
+
 
 function typecheck () {
    var e, instrumentation, output, reading_effect, st, str, writing_effect; 

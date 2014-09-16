@@ -117,16 +117,14 @@ input[type="button"]:active, input[type="submit"]:active {
     margin-top: 2%;
 }
 
-
 #hybrid-source {
     clear: left; 	
 }
 
-#type-insertion-dialog, #type-update-dialog {
+#type-insertion-dialog, #type-update-dialog, #my-type-insertion-dialog, #my-type-update-dialog {
 	display: none;	
 	width: 300px;
 }
-
 
 #ultypeenv {
 	list-style-type: none;
@@ -139,6 +137,15 @@ input[type="button"]:active, input[type="submit"]:active {
 	border: 2px dashed #776;
 	width: 150px;
 }
+
+#tablemytypes td.tdtypestring {
+	padding: 4px;
+    background: #f8f8e8;
+	border-radius: 6px;
+	border: 2px dashed #776;
+	width: 150px;
+}
+
 
 #output-holder {
 	display: none; 

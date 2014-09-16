@@ -1,10 +1,13 @@
 sec_types = {}; 
 
+sec_types.this_prop = 'this_prop';
+sec_types.ret_prop = 'ret_prop';
 sec_types.conds = {}; 
+sec_types.original_pc_level = 'original_pc_level';
 
 sec_types.conds.makeCondSet = function (element, cond) {
    var cond_set = [];  
-   if (element) { 
+   if ((typeof element) !== 'undefined') { 
       cond_set.push({
          element: element, 
          cond: cond});
@@ -97,6 +100,186 @@ sec_types.conds.condExp = function (cond_set, cond) {
    }
 };
 
+sec_types.getTypeObjProp = function (o, prop) {
+	var ret_type, type; 
+	
+	if (!o.row_type.hasOwnProperty(prop)) {
+	   return false; 
+	}
+	
+	type = o.row_type[prop].type; 
+	ret_type = sec_types.substitute(type, o.type_var, o);
+	return ret_type; 
+};
+
+sec_types.getTypeObjStar = function (o) {
+	var ret_type, type; 
+	
+	if (!o.star_type) {
+	   return false; 
+	}
+	
+	type = o.star_type; 
+	ret_type = sec_types.substitute(type, o.type_var, o);
+	return ret_type; 
+};
+
+sec_types.objCovariantStaticLookup = function (obj_type, prop_expr_st, prop_set) {
+   var cond, obj_type_domain, new_prop_set, prop, ret_type, ret_level;
+   
+   // Statically, we know the property that is being accessed
+   if (prop_expr_st.type === 'Literal') {
+      prop = prop_expr_st.value; 
+      if (obj_type.row_type.hasOwnProperty(prop)) {
+         return {
+            level: obj_type.row_type[prop].level, 
+            type: sec_types.getTypeObjProp(obj_type, prop)
+         }; 
+      } 
+      if (obj_type.star_type) {
+         return {
+            level: obj_type.star_level, 
+            type: sec_types.getTypeObjStar(obj_type)
+         };
+      }
+      return false; 
+   }
+   
+   // We don't know the property that is being accessed
+   for (prop in obj_type.row_type) {
+      if (obj_type.row_type.hasOwnProperty(prop) && this.belongsTo(prop, prop_set)) {
+      	 if (!ret_type) {
+      	 	ret_type = sec_types.getTypeObjProp(obj_type, prop); 
+      	 	ret_level = obj_type.row_type[prop].level;  
+      	 } else {
+      	 	ret_type = sec_types.lubType(ret_type, sec_types.getTypeObjProp(obj_type, prop)); 
+      	 	ret_level = lat.lub(ret_level, obj_type.row_type[prop].level);
+      	 }
+      } 
+   }
+   
+   if (!obj_type.star_type) {
+   	  if (ret_type) {
+   	     return {
+            level: ret_level, 
+            type: ret_type
+         };
+   	  } else {
+   	  	 return false; 
+   	  }
+      
+   } 
+   
+   obj_type_domain =  sec_types.objTypeDomain(obj_type);
+   if (!prop_set.all_strings) { 
+      new_prop_set = this.setSubtract(prop_set.properties, obj_type_domain);
+      if (new_prop_set.length !== 0) {
+      	 if (ret_type) {
+      	    ret_type = sec_types.lubType(ret_type, sec_types.getTypeObjStar(obj_type)); 
+      	    ret_level = lat.lub(ret_level, obj_type.star_level);	
+      	 } else {
+      	 	ret_type = sec_types.getTypeObjStar(obj_type); 
+      	    ret_level = obj_type.star_level;
+      	 }   
+      }
+   } else {
+   	  if (ret_type) {
+         ret_type = sec_types.lubType(ret_type, sec_types.getTypeObjStar(obj_type)); 
+      	 ret_level = lat.lub(ret_level, obj_type.star_level);	
+      } else {
+      	 ret_type = sec_types.getTypeObjStar(obj_type); 
+      	 ret_level = obj_type.star_level;
+      }   
+   }
+   
+   if (ret_type) {
+      return {
+         level: ret_level, 
+         type: ret_type
+      };
+   } else {
+   	  return false; 
+   }
+}; 
+
+sec_types.objContravariantStaticLookup = function (obj_type, prop_expr_st, prop_set) {
+   var cond, obj_type_domain, new_prop_set, prop, ret_type, ret_level;
+   
+   // Statically, we know the property that is being accessed
+   if (prop_expr_st.type === 'Literal') {
+      prop = prop_expr_st.value; 
+      if (obj_type.row_type.hasOwnProperty(prop)) {
+         return {
+            level: obj_type.row_type[prop].level, 
+            type: sec_types.getTypeObjProp(obj_type, prop)
+         }; 
+      } 
+      if (obj_type.star_type) {
+         return {
+            level: obj_type.star_level, 
+            type: sec_types.getTypeObjStar(obj_type)
+         };
+      }
+      return false; 
+   }
+   
+   // We don't know the property that is being accessed
+   for (prop in obj_type.row_type) {
+      if (obj_type.row_type.hasOwnProperty(prop) && this.belongsTo(prop, prop_set)) {
+      	 if (!ret_type) {
+      	 	ret_type = sec_types.getTypeObjProp(obj_type, prop); 
+      	 	ret_level = obj_type.row_type[prop].level;  
+      	 } else {
+      	 	ret_type = sec_types.glbType(ret_type, sec_types.getTypeObjProp(obj_type, prop)); 
+      	 	ret_level = lat.glb(ret_level, obj_type.row_type[prop].level);
+      	 }
+      } 
+   }
+   
+   if (!obj_type.star_type) {
+   	  if (ret_type) {
+   	     return {
+            level: ret_level, 
+            type: ret_type
+         };
+   	  } else {
+   	  	 return false; 
+   	  }
+      
+   } 
+   
+   obj_type_domain =  sec_types.objTypeDomain(obj_type);
+   if (!prop_set.all_strings) { 
+      new_prop_set = this.setSubtract(prop_set.properties, obj_type_domain);
+      if (new_prop_set.length !== 0) {
+      	 if (ret_type) {
+      	    ret_type = sec_types.glbType(ret_type, sec_types.getTypeObjStar(obj_type)); 
+      	    ret_level = lat.glb(ret_level, obj_type.star_level);	
+      	 } else {
+      	 	ret_type = obj_type.star_type; 
+      	    ret_level = obj_type.star_level;
+      	 }   
+      }
+   } else {
+   	  if (ret_type) {
+         ret_type = sec_types.glbType(ret_type, sec_types.getTypeObjStar(obj_type)); 
+      	 ret_level = lat.glb(ret_level, obj_type.star_level);	
+      } else {
+      	 ret_type = sec_types.getTypeObjStar(obj_type); 
+      	 ret_level = obj_type.star_level;
+      }   
+   }
+   
+   if (ret_type) {
+      return {
+         level: ret_level, 
+         type: ret_type
+      };
+   } else {
+   	  return false; 
+   }
+}; 
+
 sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond) {
    var cond, obj_type_domain, new_prop_set, prop, prop_var, triples;
    
@@ -106,14 +289,14 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
       if (obj_type.row_type.hasOwnProperty(prop)) {
          return [{
             level: obj_type.row_type[prop].level, 
-            type: obj_type.row_type[prop].type, 
+            type: sec_types.getTypeObjProp(obj_type, prop), 
             cond: obj_cond
          }]; 
       } 
       if (obj_type.star_type) {
          return [{
             level: obj_type.star_level, 
-            type: obj_type.star_type, 
+            type: sec_types.getTypeObjStar(obj_type), 
             cond: obj_cond
          }];
       }
@@ -129,7 +312,7 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
          cond = this.buildBinaryCond('&&', obj_cond, cond);  
          triples.push({
             level: obj_type.row_type[prop].level, 
-            type: obj_type.row_type[prop].type, 
+            type: sec_types.getTypeObjProp(obj_type, prop), 
             cond: cond});
       } 
    }
@@ -146,7 +329,7 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
       cond = this.buildBinaryCond('&&', obj_cond, cond); 
       triples.push({
          level: obj_type.star_level, 
-         type: obj_type.star_type, 
+         type: sec_types.getTypeObjStar(obj_type), 
          cond: cond});
    } else {
       cond = this.buildElementaryCond(prop_var, obj_type_domain);
@@ -154,7 +337,7 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
       cond = this.buildBinaryCond('&&', obj_cond, cond); 
       triples.push({
          level: obj_type.star_level, 
-         type: obj_type.star_type, 
+         type: sec_types.getTypeObjStar(obj_type), 
          cond: cond
       }); 
    }
@@ -194,15 +377,40 @@ sec_types.conds.genFun = function (left_cond_set, right_cond_set, lub_fun) {
 };
 
 sec_types.conds.unwrapType = function (wrapped_type) {
+   var err; 
    if ((wrapped_type.length != 1) && (wrappped_type[0].cond != 'true')){
-      throw new Error ('Typing Error: unwrappable type'); 
+   	  err = new Error ('Typing Error: no hypothetical reasonging about function calls!');
+   	  err.typing_error = true; 
+      throw err;  
    }
    
    return wrapped_type[0].element; 
 }; 
 
+sec_types.conds.unwrapLevel = function (wrapped_level) {
+   var err; 
+   if ((wrapped_level.length != 1) && (wrappped_level[0].cond != 'true')){
+   	  err = new Error ('Typing Error: no hypothetical reasonging about function literals!');
+   	  err.typing_error = true; 
+      throw err;  
+   }
+   
+   return wrapped_level[0].element; 
+}; 
+
+/*
+ * if (right_type.type_name === 'DELAYED_FUN') {
+      	 	// I have to do something here
+      	 	return sec_types.typeDelayedFunTypes(right_type, left_type);
+      	 }
+ */
 
 sec_types.isSubType = function (left_type, right_type) {
+   
+   if (left_type.type_name === 'DELAYED_FUN') {
+      return sec_types.typeDelayedFunTypes(right_type, left_type); 
+   } 
+ 
    if (left_type.type_name != right_type.type_name) return false;
    
    if (left_type.type_name == 'PRIM') {
@@ -216,18 +424,27 @@ sec_types.isSubType = function (left_type, right_type) {
       if (!lat.equals(left_type.star_level, right_type.star_level)) return false; 
       return lat.leq(left_type.level, right_type.level);      
    } else if (left_type.type_name == 'FUN') {
-      if (right_type.type_name !== 'FUN') return false;
+      if (right_type.type_name !== 'FUN') { return false; }
       if (!utils.equals(left_type.this_type, right_type.this_type)) return false;
       if (!utils.equals(left_type.parameter_types, right_type.parameter_types)) return false;
       if (!utils.equals(left_type.ret_type, right_type.ret_type)) return false;
       if (!lat.equals(left_type.context_level, right_type.context_level)) return false;
       return lat.leq(left_type.level, right_type.level);
+   }  else {
+   	  return false;
    }
-   return false; 
 }; 
 
 sec_types.lubType = function (left_type, right_type) {
    var new_type; 
+   
+   if (left_type.type_name === 'DELAYED_FUN') {
+      // I have to do something here
+      // return sec_types.typeDelayedFunTypes(right_type, left_type);
+      alert('lubType still not done for delayed fun types');
+      return false;
+   }
+   
    if (left_type.type_name != right_type.type_name) return false;
    
    if (left_type.type_name == 'PRIM') {
@@ -246,7 +463,7 @@ sec_types.lubType = function (left_type, right_type) {
       return new_type;       
    } else if (left_type.type_name == 'FUN') {
       // lub between fun types
-      if (right_type.type_name !== 'FUN') return false;
+      if (right_type.type_name !== 'FUN') { return false; }
       if (!utils.equals(left_type.this_type, right_type.this_type)) return false;
       if (!utils.equals(left_type.parameter_types, right_type.parameter_types)) return false;
       if (!utils.equals(left_type.ret_type, right_type.ret_type)) return false;
@@ -254,10 +471,84 @@ sec_types.lubType = function (left_type, right_type) {
       new_type = $.extend(true, {}, left_type);
       new_type.level = lat.lub(left_type.level, right_type.level);
       return new_type;
+   } else {
+   	  return false;
    }
-   return false;
 }; 
 
+sec_types.glbType = function (left_type, right_type) {
+   var new_type; 
+   
+   if (left_type.type_name === 'DELAYED_FUN') {
+      // I have to do something here
+      // return sec_types.typeDelayedFunTypes(right_type, left_type);
+      alert('glbType still not done for delayed fun types');
+      return false;
+   } 
+   
+   if (left_type.type_name != right_type.type_name) return false;
+   
+   if (left_type.type_name == 'PRIM') {
+      // lub between prim types
+      if (right_type.type_name !== 'PRIM') return false;
+      return sec_types.buildPrimType(lat.glb(left_type.level, right_type.level)); 
+   } else if (left_type.type_name == 'OBJ') {
+      // lub between obj types
+      if (right_type.type_name !== 'OBJ') return false;
+      if (left_type.type_var != right_type.type_var) return false;
+      if (!utils.equals(left_type.row_type, right_type.row_type)) return false; 
+      if (!utils.equals(left_type.star_type, right_type.star_type)) return false; 
+      if (!lat.equals(left_type.star_level, right_type.star_level)) return false; 
+      new_type = $.extend(true, {}, left_type); 
+      new_type.level = lat.lub(left_type.level, right_type.level);
+      return new_type;       
+   } else if (left_type.type_name == 'FUN') {
+      // lub between fun types
+      if (right_type.type_name !== 'FUN') { return false; }
+      if (!utils.equals(left_type.this_type, right_type.this_type)) return false;
+      if (!utils.equals(left_type.parameter_types, right_type.parameter_types)) return false;
+      if (!utils.equals(left_type.ret_type, right_type.ret_type)) return false;
+      if (!lat.equals(left_type.context_level, right_type.context_level)) return false;
+      new_type = $.extend(true, {}, left_type);
+      new_type.level = lat.glb(left_type.level, right_type.level);
+      return new_type;
+   } else {
+      return false;
+   }
+};
+
+sec_types.typeDelayedFunTypes = function (fun_type, delayed_funs_to_type) {
+	var fun_lit_expr, i, len, pc_level, type_env; 
+	
+    if (fun_type.type_name !== 'FUN') {
+    	return false;
+    }
+    
+    for (i = 0, len = delayed_funs_to_type.fun_lits.length; i < len; i++) {
+       delayed_type = delayed_funs_to_type.fun_lits[i];
+       fun_lit_expr = delayed_type.fun_lit_expr; 
+       pc_level = delayed_type.pc_level; 
+       type_env = delayed_type.type_env; 
+       if (!sec_types.typeDelayedFunType(fun_lit_expr, type_env, fun_type)) {
+          return false;
+       } else {
+       	  if (!lat.leq(pc_level, fun_type.level)) {
+       	     return false;	
+       	  }
+       } 
+    }
+    
+    delete delayed_funs_to_type.fun_lits; 
+    
+    delayed_funs_to_type.type_name = fun_type.type_name; 
+    delayed_funs_to_type.this_type = fun_type.this_type;
+    delayed_funs_to_type.parameter_types = fun_type.parameter_types;
+    delayed_funs_to_type.context_level = fun_type.context_level;
+    delayed_funs_to_type.ret_type = fun_type.ret_type;
+    delayed_funs_to_type.level = fun_type.level;
+   
+    return true; 
+}; 
 
 /*
  * Type Constructors
@@ -291,6 +582,133 @@ sec_types.buildFunType = function (this_type, parameter_types, context_level, re
    }; 
 };
 
+sec_types.buildTypeVariable = function (var_name) {
+   return {
+    	type_name: 'VAR', 
+    	var_name: var_name
+   };
+}; 
+
+sec_types.buildGlobalType = function () {
+   return {
+    	type_name: 'GLOBAL'
+   };
+}; 
+
+sec_types.buildDelayedFunType = function (fun_lit_expr, type_env, pc_level) {
+   var delayed_type; 
+   
+   delayed_type = {
+      fun_lit_expr: fun_lit_expr, 
+      type_env: type_env, 
+      pc_level: pc_level	
+   };  
+   
+   return {
+      type_name: 'DELAYED_FUN', 
+      fun_lits: [ delayed_type ]
+   };
+}; 
+
+/*
+ * Substitutions
+ */
+
+sec_types.substitute = function (type, type_var, new_type) {
+   var fun, redirector, ret_type; 
+   
+   redirector = {
+      PRIM: sec_types.substitutePrimType, 
+      OBJ: sec_types.substituteObjType, 
+      FUN: sec_types.substituteFunType, 
+      GLOBAL: sec_types.substituteGlobalType, 
+      VAR: sec_types.substituteTypeVariable
+   };
+   
+   fun = redirector[type.type_name];
+   ret_type = fun.call(sec_types, type, type_var, new_type);
+   
+   return ret_type; 
+};
+
+sec_types.substitutePrimType = function (prim_type, type_var, new_type) {
+   return prim_type; 
+};
+
+sec_types.substituteObjType = function (obj_type, type_var, new_type) {
+   var new_prop_type, new_row_type, new_star_type, new_type, prop, prop_type, prop_level; 
+   
+   if (obj_type.type_var === type_var) return obj_type;
+   
+   new_row_type = {}; 
+   for (prop in obj_type.row_type) {
+      if (obj_type.row_type.hasOwnProperty(prop)) {
+      	 prop_type = obj_type.row_type[prop].type; 
+      	 prop_level = bj_type.row_type[prop].level; 
+         prop_type = sec_types.substitute(prop_type, type_var, new_type);
+         new_row_type[prop] = {
+         	type: new_prop_type, 
+         	level: new_prop_level
+         }; 
+      }
+   }
+   
+   if (obj_type.star_type) {
+      new_star_type = sec_type.substitute(obj_type.star_type, type_var, new_type);
+   }
+   
+   new_type = sec_types.buildObjType(obj_type.type_var, new_row_type, obj_type.star_level, new_star_type, obj_type.level);
+   return new_type; 
+};
+
+sec_types.substituteFunType = function (fun_type, type_var, new_type) {
+   var i, len, new_this_type, new_parameter_types, new_ret_type, new_type;
+   
+   new_parameter_types = []; 
+   for (i = 0, len = fun_type.parameter_types.length; i < len; i++) {
+       new_parameter_types.push(sec_types.substitute(fun_type.parameter_types[i], type_var, new_type));    
+   }
+   new_this_type = sec_types.substitute(fun_type.this_type, type_var, new_type);
+   new_ret_type = sec_types.substitute(fun_type.ret_type, type_var, new_type);
+   
+   new_type = sec_types.buildFunType(new_this_type, new_parameter_types, fun_type.context_level, new_ret_type, fun_type.level);
+   return new_type; 
+};
+
+sec_types.substituteTypeVariable = function (var_type, type_var, new_type) {
+   if (var_type.var_name !== type_var) {
+      return var_type; 
+   }	
+   
+   return $.extend(true, {}, new_type); 
+};
+
+sec_types.substituteGlobalType = function (global_type, type_var, new_type) {
+   return global_type;
+}; 
+
+
+
+sec_types.globalType2ObjectType = function (typing_environment) {
+	var prop, row_type;
+	
+	row_type = {}; 
+    for (prop in typing_environment) {
+       if (typing_environment.hasOwnProperty(prop)) {
+          row_type[prop] = typing_environment[prop];  		
+       }
+    }
+    
+    return {
+      type_name: 'OBJ', 
+      type_var: '__kGlobal', 
+      row_type: row_type,
+      star_level: null, 
+      star_type: null, 
+      level: lat.bot
+   }; 
+}; 
+
 sec_types.objTypeDomain = function (obj_type) {
    var prop, props; 
    props = []; 
@@ -302,23 +720,36 @@ sec_types.objTypeDomain = function (obj_type) {
    return props; 
 }; 
 
-
 /*
  * Print methods
  */
 sec_types.printType = function (type) {
    var fun, redirector, str; 
    
+   if (type.my_type_name) {
+      return type.my_type_name;	
+   }
+   
    redirector = {
       PRIM: sec_types.printPrimType, 
       OBJ: sec_types.printObjType, 
-      FUN: sec_types.printFunType
+      FUN: sec_types.printFunType, 
+      GLOBAL: sec_types.printGlobalType, 
+      VAR: sec_types.printTypeVar
    };
    
    fun = redirector[type.type_name];
    str = fun.call(sec_types, type);
    
    return str; 
+};
+
+sec_types.printTypeVar = function (type) {
+	return type.var_name;
+};
+
+sec_types.printGlobalType = function (type) {
+	return 'GLOB';
 };
 
 sec_types.printPrimType = function (type) {
@@ -364,7 +795,7 @@ sec_types.printFunType = function (type) {
       str += sec_types.printType(type.parameter_types[i]);	
    }
    
-   str += ') ->^{ ' + lat.print(type.level) + '} ';
+   str += ') ->^{' + lat.print(type.level) + '} ';
    
    str += sec_types.printType(type.ret_type);
    str += '>^{' + lat.print(type.level) + '}';
@@ -661,6 +1092,20 @@ sec_types.conds.printLevelSet = function (level_set) {
 	   str += sec_types.conds.printCond(level_set[i].cond);
 	}
 	return str; 
+};
+
+sec_types.isLegalTypeName = function (type_name) {
+	var ret, str; 
+	
+	str = type_name.substring(0, 2);
+	ret = {};
+	if (str !== '**') {
+		ret.is_legal = false; 
+		ret.message = 'Type names must be preceded by \'**\''; 
+	} else {
+		ret.is_legal = true; 
+	}
+	return ret; 
 };
 
 
