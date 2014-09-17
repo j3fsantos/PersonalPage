@@ -541,10 +541,6 @@ function typecheck () {
          reading_effect = output.reading_effect;
          reading_effect = sec_types.conds.printTypeSet(reading_effect); 
          $('#res-type').val(reading_effect);
-         
-         writing_effect = output.writing_effect; 
-         writing_effect = sec_types.conds.printLevelSet(writing_effect);
-         $('#res-writing-effect').val(writing_effect); 
          	
       } catch (e) {
       	 if ((typeof e === 'object') && e.typing_error) {

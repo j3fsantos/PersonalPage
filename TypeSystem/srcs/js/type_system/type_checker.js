@@ -42,10 +42,13 @@ sec_types.typeCheck = function (st, type_env, pc_level_set) {
 	    case 'ReturnStatement': 
 	      return this.typeCheckReturnStmt(st, type_env, pc_level_set);  
 	    case 'ThisExpression': 
-		   return this.typeCheckThisExpr(st); 
-/* 		 
-	   case 'VariableDeclaration': 
-	      return null;  */  
+		   return this.typeCheckThisExpr(st, type_env, pc_level_set); 
+        case 'VariableDeclaration': 
+	      return this.typeCheckVarDeclaration(st, type_env, pc_level_set);  
+	    case 'ConditionalExpression': 
+	      return this.typeCheckConditionalExpr(st, type_env, pc_level_set); 
+	    case 'SequenceExpression': 
+	      return this.typeCheckSequenceExpr(st, type_env, pc_level_set); 
 		default:  
 		   if (!st.type) {
 		   	throw new Error('Syntax Error - Illegal Program');
@@ -109,7 +112,7 @@ sec_types.buildNewVarsDeclaration = function (new_vars) {
 }; 
 
 sec_types.typeCheckBlockStmt = function (block_stmt, type_env, pc_level_set) {
-   var i, len, new_vars, stmts, type_set; 
+   var i, len, new_vars, ret, stmts, type_set; 
     
    new_vars = []; 
    stmts = [];  
@@ -295,12 +298,18 @@ sec_types.typeCheckUnOpExpr = function (unop_expr, type_env, pc_level_set) {
 	
 sec_types.typeCheckPropertyLookUp = function (member_expr, type_env, pc_level_set) {
    var compiled_stmt, level_set, lev_exp_set, lev_set_obj, lev_set_prop, look_up_set, look_up_type_set, new_vars, 
-      new_var_name, property_annotation, ret_obj, ret_obj_type_set, ret_prop, ret_prop_type_set, stmts; 
+      new_var_name, property_annotation, prop_expr, ret_obj, ret_obj_type_set, ret_prop, ret_prop_type_set, stmts; 
    
    property_annotation = member_expr.property.property_set; 
    
+   if (!member_expr.computed) {
+      prop_expr = window.esprima.delegate.createLiteral2(member_expr.property.name);	
+   } else {
+   	  prop_expr = member_expr.property;
+   }
+   
    ret_obj = this.typeCheck(member_expr.object, type_env, pc_level_set); 
-   ret_prop = this.typeCheck(member_expr.property, type_env, pc_level_set); 
+   ret_prop = this.typeCheck(prop_expr, type_env, pc_level_set); 
    
    ret_obj_type_set = this.conds.floor(ret_obj.type_set, 'OBJ'); 
    ret_prop_type_set = this.conds.floor(ret_prop.type_set, 'PRIM'); 
@@ -338,7 +347,7 @@ sec_types.typeCheckPropertyAssignmentExpr = function (prop_assign_expr, type_env
    var compiled_assignment_stmt, cond, cond_type, cond_level, err, 
       level_set, lev_set_obj, lev_set_prop, lev_set_obj_prop,  
       look_up_set, look_up_level_set, look_up_type_set, new_vars, 
-      property_annotation, ret_obj, ret_obj_type_set, ret_prop, ret_right, stmts; 
+      property_annotation, ret_obj, ret_obj_type_set, ret_expr, ret_prop, ret_right, stmts; 
    
    property_annotation = prop_assign_expr.left.property.property_set;
     
@@ -382,11 +391,13 @@ sec_types.typeCheckPropertyAssignmentExpr = function (prop_assign_expr, type_env
    
    new_vars = ret_obj.new_vars.concat(ret_prop.new_vars);
    new_vars = new_vars.concat(ret_right.new_vars); 
+   
+   ret_expr = window.esprima.delegate.createMemberExpression('[', ret_obj.expr, ret_prop.expr);
  
    return {
       new_vars: new_vars,
       stmts: stmts,  
-      expr: ret_right.expr, 
+      expr: ret_expr, 
       type_set: ret_right.type_set 
    };
 }; 
@@ -435,12 +446,18 @@ sec_types.typeCheckInExpr = function (in_expr, type_env, pc_level_set) {
 
 sec_types.typeCheckDeleteExpr = function (delete_expr, type_env, pc_level_set) {
    var compiled_delete_stmt, cond, err, level_set, lev_set_obj, lev_set_obj_prop, lev_set_prop, look_up_set, 
-          look_up_level_set, new_vars, property_annotation, ret_obj, ret_obj_type_set, ret_prop, stmts, type_set; 
+          look_up_level_set, new_vars, property_annotation, prop_expr, ret_obj, ret_obj_type_set, ret_prop, stmts, type_set; 
    
    property_annotation = delete_expr.argument.property.property_set;
    
+   if (!delete_expr.argument.computed) {
+      prop_expr = window.esprima.delegate.createLiteral2(delete_expr.argument.property.name);	
+   } else {
+   	  prop_expr = delete_expr.argument.property;
+   }
+   
    ret_obj = this.typeCheck(delete_expr.argument.object, type_env, pc_level_set);
-   ret_prop = this.typeCheck(delete_expr.argument.property, type_env, pc_level_set);
+   ret_prop = this.typeCheck(prop_expr, type_env, pc_level_set);
    ret_obj_type_set = this.conds.floor(ret_obj.type_set, 'OBJ'); 
    
    new_vars = ret_prop.new_vars.concat(ret_obj.new_vars);
@@ -534,7 +551,7 @@ sec_types.typeCheckIfStmt = function (if_stmt, type_env, pc_level_set) {
       
    return {
       new_vars: new_vars,
-      expr: window.esprima.delegate.createIdentifier(new_var_name),
+      expr: window.esprima.delegate.createIdentifier('undefined'),
       stmts: stmts, 
       type_set: type_set
    };
@@ -566,27 +583,32 @@ sec_types.typeCheckWhileStmt = function (while_stmt, type_env, pc_level_set) {
    };
 }; 
 
-sec_types.typeCheckObjectExpr = function (obj_expr, type_env) {
-   var compiled_stmt, new_vars, new_var_name, object_type, stmts; 
+sec_types.typeCheckObjectExpr = function (obj_expr, type_env, pc_level_set) {
+   var compiled_stmt, err, new_vars, new_var_name, object_type, pc_level, stmts; 
    
-   object_type = this.lit_annotations[this.lit_index];
-   this.lit_index++;  
+   if (obj_expr.properties.length > 0) {
+      err = new Error('Typing Error: Object literals with predefined properties are not supported yet!');
+      err.typing_error = true; 
+      throw err;   	
+   }
    
    new_var_name = this.generateNewVarName(); 
    new_vars = [ new_var_name ]; 
     
    compiled_stmt = window.esprima.delegate.createAssignmentExpression('=', 
-   	  window.esprima.delegate.createIdentifier(new_var_name), 
-   	  $.extend(true, {}, obj_expr));
+   	  window.esprima.delegate.createIdentifier(new_var_name),
+   	  window.esprima.delegate.createObjectExpression([]));
    compiled_stmt = window.esprima.delegate.createExpressionStatement(compiled_stmt);  
    stmts = [ compiled_stmt ];    
     
+   pc_level = sec_types.conds.unwrapLevel(pc_level_set);
+   object_type = sec_types.buildDelayedObjType(pc_level);
+  
    return {
       new_vars: new_vars,
       stmts: stmts,  
       expr: window.esprima.delegate.createIdentifier(new_var_name), 
-      type_set: this.conds.makeCondSet(object_type, 'true'), 
-      level_set: this.conds.makeCondSet(object_type.level, 'true')
+      type_set: this.conds.makeCondSet(object_type, 'true')
    }; 
 }; 
 
@@ -661,13 +683,19 @@ sec_types.typeCheckFunCallExpr = function (fun_call_expr, type_env, pc_level_set
 
 sec_types.typeCheckMethodCallExpr = function (method_call_expr, type_env, pc_level_set) {
    var arg_types, err, method_type, i, len, level_set, look_up_level, method_type, method_level, 
-      new_vars, processed_args, property_annotation, ret_look_up, ret_args, compiled_expr, ret_type, stmts, 
+      new_vars, processed_args, property_annotation, prop_expr, ret_look_up, ret_args, compiled_expr, ret_type, stmts, 
       type_object, type_prop;
   
    property_annotation = method_call_expr.callee.property.property_set; 
    
+   if (!method_call_expr.callee.computed) {
+      prop_expr = window.esprima.delegate.createLiteral2(method_call_expr.callee.property.name);	
+   } else {
+   	  prop_expr = method_call_expr.callee.property;
+   }
+   
    ret_object = this.typeCheck(method_call_expr.callee.object, type_env, pc_level_set);
-   ret_property = this.typeCheck(method_call_expr.callee.property, type_env, pc_level_set);
+   ret_property = this.typeCheck(prop_expr, type_env, pc_level_set);
    
    type_object = this.conds.unwrapType(ret_object.type_set);
    type_property = this.conds.unwrapType(ret_property.type_set);
@@ -785,6 +813,108 @@ sec_types.typeCheckFunctionLiteralExpr = function (fun_lit_expr, type_env, pc_le
       type_set: this.conds.makeCondSet(type, 'true')   	
    };   
 };	   
+
+sec_types.typeCheckThisExpr = function (this_expr, type_env, pc_level_set) {
+   var this_type, type_set; 
+   
+   if (type_env.hasOwnProperty(sec_types.this_prop)) {
+      this_type = type_env[sec_types.this_prop]; 
+   } else {
+   	  this_type = sec_types.globalType2ObjectType(type_env);
+   }
+   type_set = this.conds.makeCondSet(this_type, 'true'); 
+   type_set = this.conds.levExp(type_set, pc_level_set); 
+   
+   return {
+      new_vars: [],
+      stmts: [],
+      expr: $.extend(true, {}, this_expr),
+      type_set: type_set
+   };
+};
+
+sec_types.typeCheckVarDeclaration = function (var_decl, type_env, pc_level_set) {
+   return {
+      new_vars: [],
+      stmts: [],
+      expr: window.esprima.delegate.createIdentifier('undefined'),
+      type_set: type_set
+   };
+}; 
+
+sec_types.typeCheckConditionalExpr = function (cond_expr, type_env, pc_level_set) {
+   var assignment, compiled_alternate, compiled_consequent, compiled_if_stmt, 
+       cond, cond_false, cond_true, lev_set_test, 
+       new_var_name, new_vars, ret_alternate, ret_consequent, ret_test, stmts, 
+       type_set, type_set_alternate, type_set_consequent;
+   
+   ret_test = this.typeCheck(cond_expr.test, type_env, pc_level_set);
+   lev_set_test = this.conds.levLog(ret_test.type_set);
+   
+   ret_consequent = this.typeCheck(cond_expr.consequent, type_env, lev_set_test);
+   ret_alternate = this.typeCheck(cond_expr.alternate, type_env, lev_set_test);
+   
+   new_var_name = this.generateNewVarName(); 
+   new_vars = ret_test.new_vars.concat(ret_consequent.new_vars);
+   new_vars = new_vars.concat(ret_alternate.new_vars);
+   new_vars.push(new_var_name); 
+      
+   assignment = window.esprima.delegate.createAssignmentExpression('=', 
+   	  window.esprima.delegate.createIdentifier(new_var_name), 
+   	  ret_consequent.expr);
+   assignment = window.esprima.delegate.createExpressionStatement(assignment);  
+   ret_consequent.stmts.push(assignment); 
+   compiled_consequent = window.esprima.delegate.createBlockStatement(ret_consequent.stmts);
+   
+   assignment = window.esprima.delegate.createAssignmentExpression('=', 
+      window.esprima.delegate.createIdentifier(new_var_name), 
+   	  ret_alternate.expr);
+   assignment = window.esprima.delegate.createExpressionStatement(assignment);  
+   ret_alternate.stmts.push(assignment); 
+   compiled_alternate = window.esprima.delegate.createBlockStatement(ret_alternate.stmts); 
+   
+   compiled_if_stmt = window.esprima.delegate.createIfStatement(ret_test.expr, compiled_consequent, compiled_alternate);
+   stmts = ret_test.stmts;  
+   stmts.push(compiled_if_stmt); 
+   
+   cond_false = this.conds.buildElementaryCond(ret_test.expr.name, [false, undefined, 0, null]);
+   cond_true = this.conds.buildUnaryCond('!', $.extend(true, {}, cond_false));
+   
+   type_set_consequent = ret_consequent.type_set;
+   sec_types.conds.condExp(type_set_consequent, cond_true);
+   type_set_alternate = ret_alternate.type_set;
+   sec_types.conds.condExp(type_set_alternate, cond_false); 
+   type_set = type_set_consequent.concat(type_set_alternate);
+      
+   return {
+      new_vars: new_vars,
+      expr: window.esprima.delegate.createIdentifier(new_var_name),
+      stmts: stmts, 
+      type_set: type_set
+   };
+}; 
+
+sec_types.typeCheckSequenceExpr = function (seq_expr, type_env, pc_level_set) {
+   var expr, i, len, new_vars, stmts, type_set; 
+    
+   new_vars = []; 
+   stmts = [];  
+   
+   for (i = 0, len = seq_expr.expressions.length; i < len; i++) {
+      ret = this.typeCheck(seq_expr.expressions[i], type_env, pc_level_set); 
+      stmts = stmts.concat(ret.stmts);
+      new_vars = new_vars.concat(ret.new_vars);
+      type_set = ret.type_set;
+      expr = ret.expr;
+   }
+   
+   return {
+      new_vars: new_vars,
+      stmts: stmts,
+      expr: expr, 
+      type_set: type_set
+   };	
+};
 
 sec_types.typeDelayedFunType = function (fun_lit_expr, type_env, fun_type) {
    var compiled_stmts, new_type_env, new_vars_decl, original_vars_decl, params, pc_level_set, ret, stmts;

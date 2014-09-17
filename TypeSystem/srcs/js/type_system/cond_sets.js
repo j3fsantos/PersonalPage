@@ -411,6 +411,10 @@ sec_types.isSubType = function (left_type, right_type) {
       return sec_types.typeDelayedFunTypes(right_type, left_type); 
    } 
  
+   if (left_type.type_name === 'DELAYED_OBJ') {
+   	   return sec_types.typeDelayedObjType(right_type, left_type);
+   }
+   
    if (left_type.type_name != right_type.type_name) return false;
    
    if (left_type.type_name == 'PRIM') {
@@ -442,6 +446,13 @@ sec_types.lubType = function (left_type, right_type) {
       // I have to do something here
       // return sec_types.typeDelayedFunTypes(right_type, left_type);
       alert('lubType still not done for delayed fun types');
+      return false;
+   }
+   
+   if (left_type.type_name === 'DELAYED_OBJ') {
+      // I have to do something here
+      // return sec_types.typeDelayedFunTypes(right_type, left_type);
+      alert('lubType still not done for delayed obj types');
       return false;
    }
    
@@ -480,6 +491,13 @@ sec_types.glbType = function (left_type, right_type) {
    var new_type; 
    
    if (left_type.type_name === 'DELAYED_FUN') {
+      // I have to do something here
+      // return sec_types.typeDelayedFunTypes(right_type, left_type);
+      alert('glbType still not done for delayed fun types');
+      return false;
+   } 
+   
+   if (left_type.type_name === 'DELAYED_OBJ') {
       // I have to do something here
       // return sec_types.typeDelayedFunTypes(right_type, left_type);
       alert('glbType still not done for delayed fun types');
@@ -529,17 +547,18 @@ sec_types.typeDelayedFunTypes = function (fun_type, delayed_funs_to_type) {
        fun_lit_expr = delayed_type.fun_lit_expr; 
        pc_level = delayed_type.pc_level; 
        type_env = delayed_type.type_env; 
-       if (!sec_types.typeDelayedFunType(fun_lit_expr, type_env, fun_type)) {
-          return false;
-       } else {
-       	  if (!lat.leq(pc_level, fun_type.level)) {
-       	     return false;	
-       	  }
+       try {
+          sec_types.typeDelayedFunType(fun_lit_expr, type_env, fun_type);
+       } catch (e) {
+       	  if (e.typing_error) return false; 
+       	  throw e;  
+       }
+       if (!lat.leq(pc_level, fun_type.level)) {
+          return false;	
        } 
     }
     
     delete delayed_funs_to_type.fun_lits; 
-    
     delayed_funs_to_type.type_name = fun_type.type_name; 
     delayed_funs_to_type.this_type = fun_type.this_type;
     delayed_funs_to_type.parameter_types = fun_type.parameter_types;
@@ -549,6 +568,26 @@ sec_types.typeDelayedFunTypes = function (fun_type, delayed_funs_to_type) {
    
     return true; 
 }; 
+
+
+sec_types.typeDelayedObjType = function (obj_type, delayed_obj_type) {
+	var i, len, pc_level; 
+	
+	pc_level = delayed_obj_type.pc_level;
+    if (!lat.leq(pc_level, obj_type.level)) {
+       return false;	
+    }
+    
+    delete delayed_obj_type.pc_level; 
+    delayed_obj_type.type_name = obj_type.type_name; 
+    delayed_obj_type.type_var = obj_type.type_var;
+    delayed_obj_type.row_type = obj_type.row_type;
+    delayed_obj_type.star_level = obj_type.star_level;
+    delayed_obj_type.star_type = obj_type.star_type;
+    delayed_obj_type.level = obj_type.level;
+  
+    return true; 
+};
 
 /*
  * Type Constructors
@@ -609,6 +648,14 @@ sec_types.buildDelayedFunType = function (fun_lit_expr, type_env, pc_level) {
       fun_lits: [ delayed_type ]
    };
 }; 
+
+sec_types.buildDelayedObjType = function (pc_level) { 
+   return {
+      type_name: 'DELAYED_OBJ', 
+      pc_level: pc_level
+   };
+}; 
+
 
 /*
  * Substitutions
@@ -735,7 +782,9 @@ sec_types.printType = function (type) {
       OBJ: sec_types.printObjType, 
       FUN: sec_types.printFunType, 
       GLOBAL: sec_types.printGlobalType, 
-      VAR: sec_types.printTypeVar
+      VAR: sec_types.printTypeVar, 
+      DELAYED_FUN: sec_types.printDelayedFunType, 
+      DELAYED_OBJ: sec_types.printDelayedObjType
    };
    
    fun = redirector[type.type_name];
@@ -795,11 +844,19 @@ sec_types.printFunType = function (type) {
       str += sec_types.printType(type.parameter_types[i]);	
    }
    
-   str += ') ->^{' + lat.print(type.level) + '} ';
+   str += ') ->^{' + lat.print(type.context_level) + '} ';
    
    str += sec_types.printType(type.ret_type);
    str += '>^{' + lat.print(type.level) + '}';
    return str; 
+};
+
+sec_types.printDelayedFunType = function (type) {
+    return false; 
+};
+
+sec_types.printDelayedObjType = function (type) {
+    return false; 
 };
 
 sec_types.conds.belongsTo = function (prop, prop_set) {
@@ -1065,16 +1122,21 @@ sec_types.buildCondST = function (cond) {
  * Print Type Set and Level Set
  */
 sec_types.conds.printTypeSet = function (type_set) {
-	var i, str;
-	 
+	var i, not_the_first, str, type_str;
+	
+	not_the_first = false;
 	str = ''; 
 	for (i = 0; i < type_set.length; i++) {
-	   if (i > 0) {
+	   type_str = sec_types.printType(type_set[i].element);
+	   if (!type_str) continue; 
+	    
+	   if (not_the_first) {
 	      str += '\n';
-	   }
-	   str += sec_types.printType(type_set[i].element); 
+	   }	   
+	   str +=  type_str;
 	   str += ' ? ';
 	   str += sec_types.conds.printCond(type_set[i].cond);
+	   not_the_first = true; 
 	}
 	return str; 
 };

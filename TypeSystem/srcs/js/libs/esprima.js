@@ -521,7 +521,8 @@ parseStatement: true, parseSourceElement: true */
         ret = source.slice(start, index);
         
          // This is mine!!!        
-        if ((ret === 'in') && (source[index]==='^')) {
+        if ((ret === 'in') && (source[index]==='^') && (source[index+1]==='@')) {
+        	index++; 
         	index++; 
         	//alert('This is mine!!!! Ahahahahah!!!! ' + source[index]); 
         	property_set = parsePropertySet(); 
@@ -602,6 +603,7 @@ parseStatement: true, parseSourceElement: true */
         case 40:   // ( open bracket
         case 41:   // ) close bracket
         case 59:   // ; semicolon
+        case 64:   // @ THIS WAS MODIFIED BY THE PUPPET MASTER Ah AH Ah
         case 44:   // , comma
         case 123:  // { open curly brace
         case 125:  // } close curly brace
@@ -1096,7 +1098,7 @@ parseStatement: true, parseSourceElement: true */
         ch = source.charCodeAt(index);
 
         // Very common: ( and ) and ;
-        if (ch === 40 || ch === 41 || ch === 58) {
+        if (ch === 40 || ch === 41 || ch === 58 || ch === 64) {
             return scanPunctuator();
         }
 
@@ -2048,9 +2050,9 @@ parseStatement: true, parseSourceElement: true */
         expect('[');
 
         expr = parseExpression();
-
+        skip([' ']);
         // This is mine!!!        
-        if (match(';')) {
+        if (match('@')) {
         	index++; 
         	skip([' ']);
         	//alert('This is mine!!!! Ahahahahah!!!! ' + source[index]); 
