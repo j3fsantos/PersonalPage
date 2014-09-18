@@ -2,6 +2,7 @@ sec_types = {};
 
 sec_types.this_prop = 'this_prop';
 sec_types.ret_prop = 'ret_prop';
+sec_types.my_proto = 'my_proto';
 sec_types.conds = {}; 
 sec_types.original_pc_level = 'original_pc_level';
 
@@ -100,17 +101,42 @@ sec_types.conds.condExp = function (cond_set, cond) {
    }
 };
 
+sec_types.isPropInObjTypeDomain = function (o, prop) {
+	var ret_type, type; 
+	
+	if (prop === '__proto__') {
+		prop = sec_types.my_proto; 
+	}
+
+    return o.row_type.hasOwnProperty(prop); 
+};
+
+
 sec_types.getTypeObjProp = function (o, prop) {
 	var ret_type, type; 
 	
-	if (!o.row_type.hasOwnProperty(prop)) {
+	if (!sec_types.isPropInObjTypeDomain(o, prop)) {
 	   return false; 
 	}
 	
+	if (prop === '__proto__') prop = sec_types.my_proto; 
 	type = o.row_type[prop].type; 
 	ret_type = sec_types.substitute(type, o.type_var, o);
 	return ret_type; 
 };
+
+sec_types.getLevelObjProp = function (o, prop) {
+	var level; 
+	
+	if (!sec_types.isPropInObjTypeDomain(o, prop)) {
+	   return false; 
+	}
+	
+	if (prop === '__proto__') prop = sec_types.my_proto; 
+	level = o.row_type[prop].level; 
+	return level;  
+};
+
 
 sec_types.getTypeObjStar = function (o) {
 	var ret_type, type; 
@@ -130,9 +156,9 @@ sec_types.objCovariantStaticLookup = function (obj_type, prop_expr_st, prop_set)
    // Statically, we know the property that is being accessed
    if (prop_expr_st.type === 'Literal') {
       prop = prop_expr_st.value; 
-      if (obj_type.row_type.hasOwnProperty(prop)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop)) {
          return {
-            level: obj_type.row_type[prop].level, 
+            level: sec_types.getLevelObjProp(obj_type, prop), 
             type: sec_types.getTypeObjProp(obj_type, prop)
          }; 
       } 
@@ -147,13 +173,13 @@ sec_types.objCovariantStaticLookup = function (obj_type, prop_expr_st, prop_set)
    
    // We don't know the property that is being accessed
    for (prop in obj_type.row_type) {
-      if (obj_type.row_type.hasOwnProperty(prop) && this.belongsTo(prop, prop_set)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop) && this.belongsTo(prop, prop_set)) {
       	 if (!ret_type) {
       	 	ret_type = sec_types.getTypeObjProp(obj_type, prop); 
-      	 	ret_level = obj_type.row_type[prop].level;  
+      	 	ret_level = sec_types.getLevelObjProp(obj_type, prop);  
       	 } else {
       	 	ret_type = sec_types.lubType(ret_type, sec_types.getTypeObjProp(obj_type, prop)); 
-      	 	ret_level = lat.lub(ret_level, obj_type.row_type[prop].level);
+      	 	ret_level = lat.lub(ret_level, sec_types.getLevelObjProp(obj_type, prop));
       	 }
       } 
    }
@@ -208,9 +234,9 @@ sec_types.objContravariantStaticLookup = function (obj_type, prop_expr_st, prop_
    // Statically, we know the property that is being accessed
    if (prop_expr_st.type === 'Literal') {
       prop = prop_expr_st.value; 
-      if (obj_type.row_type.hasOwnProperty(prop)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop)) {
          return {
-            level: obj_type.row_type[prop].level, 
+            level: sec_types.getLevelObjProp(obj_type, prop), 
             type: sec_types.getTypeObjProp(obj_type, prop)
          }; 
       } 
@@ -225,13 +251,13 @@ sec_types.objContravariantStaticLookup = function (obj_type, prop_expr_st, prop_
    
    // We don't know the property that is being accessed
    for (prop in obj_type.row_type) {
-      if (obj_type.row_type.hasOwnProperty(prop) && this.belongsTo(prop, prop_set)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop) && this.belongsTo(prop, prop_set)) {
       	 if (!ret_type) {
       	 	ret_type = sec_types.getTypeObjProp(obj_type, prop); 
-      	 	ret_level = obj_type.row_type[prop].level;  
+      	 	ret_level = sec_types.getLevelObjProp(obj_type, prop);  
       	 } else {
       	 	ret_type = sec_types.glbType(ret_type, sec_types.getTypeObjProp(obj_type, prop)); 
-      	 	ret_level = lat.glb(ret_level, obj_type.row_type[prop].level);
+      	 	ret_level = lat.glb(ret_level, sec_types.getLevelObjProp(obj_type, prop));
       	 }
       } 
    }
@@ -286,9 +312,9 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
    // Statically, we know the property that is being accessed
    if (prop_expr_st.type === 'Literal') {
       prop = prop_expr_st.value; 
-      if (obj_type.row_type.hasOwnProperty(prop)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop)) {
          return [{
-            level: obj_type.row_type[prop].level, 
+            level: sec_types.getLevelObjProp(obj_type, prop), 
             type: sec_types.getTypeObjProp(obj_type, prop), 
             cond: obj_cond
          }]; 
@@ -307,11 +333,11 @@ sec_types.conds.objLookup = function (obj_type, prop_expr_st, prop_set, obj_cond
    triples = []; 
    prop_var = prop_expr_st.name; 
    for (prop in obj_type.row_type) {
-      if (obj_type.row_type.hasOwnProperty(prop) && this.belongsTo(prop, prop_set)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop) && this.belongsTo(prop, prop_set)) {
          cond = this.buildElementaryCond(prop_var, [ prop ]);
          cond = this.buildBinaryCond('&&', obj_cond, cond);  
          triples.push({
-            level: obj_type.row_type[prop].level, 
+            level: sec_types.getLevelObjProp(obj_type, prop), 
             type: sec_types.getTypeObjProp(obj_type, prop), 
             cond: cond});
       } 
@@ -610,14 +636,15 @@ sec_types.buildObjType = function (type_var, row_type, star_level, star_type, le
    }; 
 };
 
-sec_types.buildFunType = function (this_type, parameter_types, context_level, ret_type, level) {
+sec_types.buildFunType = function (this_type, parameter_types, context_level, ret_type, level, var_types) {
    return {
       type_name: 'FUN', 
       this_type: this_type, 
       parameter_types: parameter_types, 
       context_level: context_level, 
       ret_type: ret_type, 
-      level: level
+      level: level,
+      var_types: var_types
    }; 
 };
 
@@ -689,9 +716,9 @@ sec_types.substituteObjType = function (obj_type, type_var, new_type) {
    
    new_row_type = {}; 
    for (prop in obj_type.row_type) {
-      if (obj_type.row_type.hasOwnProperty(prop)) {
-      	 prop_type = obj_type.row_type[prop].type; 
-      	 prop_level = bj_type.row_type[prop].level; 
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop)) {
+      	 prop_type = sec_types.getTypeObjProp(obj_type, prop); 
+      	 prop_level = sec_types.getLevelObjProp(obj_type, prop); 
          prop_type = sec_types.substitute(prop_type, type_var, new_type);
          new_row_type[prop] = {
          	type: new_prop_type, 
@@ -718,7 +745,7 @@ sec_types.substituteFunType = function (fun_type, type_var, new_type) {
    new_this_type = sec_types.substitute(fun_type.this_type, type_var, new_type);
    new_ret_type = sec_types.substitute(fun_type.ret_type, type_var, new_type);
    
-   new_type = sec_types.buildFunType(new_this_type, new_parameter_types, fun_type.context_level, new_ret_type, fun_type.level);
+   new_type = sec_types.buildFunType(new_this_type, new_parameter_types, fun_type.context_level, new_ret_type, fun_type.level, fun_type.var_types);
    return new_type; 
 };
 
@@ -760,7 +787,7 @@ sec_types.objTypeDomain = function (obj_type) {
    var prop, props; 
    props = []; 
    for (prop in obj_type.row_type) {
-      if (obj_type.row_type.hasOwnProperty(prop)) {
+      if (sec_types.isPropInObjTypeDomain(obj_type, prop)) {
          props.push(prop);
       } 
    }
@@ -833,18 +860,33 @@ sec_types.printObjType = function (type) {
 };
 
 sec_types.printFunType = function (type) {
-   var i, str; 
+   var not_first_property, i, str, prop; 
    
    str = 'FUN<'; 
    str += sec_types.printType(type.this_type);
-   str += '.(';
    
+   //print parameter types
+   str += '.(';
    for (i = 0; i < type.parameter_types.length; i++) {
    	  if (i > 0) str += ', ';
       str += sec_types.printType(type.parameter_types[i]);	
    }
+   str += ')'; 
    
-   str += ') ->^{' + lat.print(type.context_level) + '} ';
+   // print var-types
+   if (type.var_types) {
+   	  str += '[';
+   	  not_first_property = false;
+   	  for (prop in type.var_types) {
+   	     if (type.var_types.hasOwnProperty(prop)) {
+   	     	if (not_first_property) str += ', ';
+   	        str += prop + ': ' + sec_types.printType(type.var_types[prop]);	
+   	     }
+   	  }
+      str += ']';	
+   }
+   
+   str += ' ->^{' + lat.print(type.context_level) + '} ';
    
    str += sec_types.printType(type.ret_type);
    str += '>^{' + lat.print(type.level) + '}';

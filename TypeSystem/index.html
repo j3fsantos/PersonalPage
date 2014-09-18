@@ -26,6 +26,7 @@
  <script src="srcs/js/type_system/cond_sets.js"></script>
  <script src="srcs/js/type_system/type_parser.js"></script>
  <script src="srcs/js/type_system/type_checker.js"></script>
+ <script src="srcs/js/type_system/cm_types.js"></script> 
  
  <link rel="stylesheet" href="srcs/styles/libs/codemirror.css" type="text/css" />
  <link rel="stylesheet" type="text/css" href="srcs/styles/libs/jqueryui-themes/base/jquery-ui.css">
@@ -50,7 +51,7 @@
        </td>     
        
        <td width="33%" align="center">
-       	   <a href="javascript:tab('case-studies');">Case Studies</a>
+       	   <a href="javascript:tab('case-study');">Case Study</a>
        </td> 
        
     </tr></table>
@@ -192,6 +193,44 @@ See:
 Notes: 
 </p>
 </div>
+
+
+</div>
+
+
+<div id="case-study" class="hid">
+<h2>Contact Manager</h2>
+
+<p>
+ Here we present the code for a simple <i class="iflowtypes-word">Contact Manager</i> 
+ application as well as the security types required for typing it. 
+ You can change both the security types and the code and retype it. 
+ You can also run it.
+</p>
+
+<b>Security Types:</b>
+<br />
+<textarea style="width:100%; height:250px;" id="cm-sec-types"> </textarea>
+<br />
+<br />
+<b>Contact Manager Code:</b>
+<br />
+<textarea style="width:100%; height:250px;" id="ta-cm-input-code"> </textarea>
+<br />
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend><b>Processing Options</b></legend>
+<p style="margin-top:0px">
+Action:
+ <input type="radio" name="cm_output_display" value="0" id="radbutton_cm_output" checked="checked"/>
+ <label>Typecheck</label>
+ <input type="radio" name="cm_output_display" value="1" id="radbutton_cm_execute"/>
+ <label>Execute</label>
+  &nbsp;
+ <input type="button" value="Execute" onclick="typeCheckCM();" />
+</p>
+</fieldset>
+
+<textarea style="width:100%; height:250px;" id="ta-cm-output-code"> </textarea>
 
 
 </div>
@@ -628,6 +667,52 @@ Notes:
 		   </div>
    	       
     </div>
+  
+<div id='code_contact_manager'>CM = {};
+CM.proto_contact = {};
+CM.contact_list = {};
+
+CM.proto_contact.printContact = function() { 
+   return this.lst + "," + this.fst;
+};
+
+CM.proto_contact.makeFavorite = function() { 
+   this.favorite = null;
+};                             
+
+CM.proto_contact.unFavorite = function() { 
+   return "favorite" in this ? delete this.favorite : true; 
+};
+
+CM.proto_contact.isFavorite = function() { 
+   return "favorite" in this; 
+};
+
+CM.createContact = function(fst_name, lst_name, email) { 
+   var contact; 
+   contact = {}; 
+   contact.__proto__ = CM.proto_contact;
+   contact.fst = fst_name;
+   contact.lst = lst_name;  
+   contact.email = email; 
+   return contact; 
+};
+
+CM.storeContact = function(contact, i) {
+   var list, key; 
+   list = this.contact_list;
+   key = contact.lst+i;
+   if (key in list) {
+      CM.storeContact(contact, i+1);
+   } else {
+   	  list[key] = contact;
+   }
+};
+            
+CM.getContact = function(lst_name, i) { 
+	return this.contact_list[lst_name+i];
+};
+</div>
   
 </div>
 

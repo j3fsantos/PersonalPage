@@ -3,6 +3,9 @@ if (!sec_types) {
 }
 
 sec_types.typeCheck = function (st, type_env, pc_level_set) {	
+   if (!pc_level_set) {
+      pc_level_set = this.conds.makeCondSet(lat.bot, 'true'); 
+   }
    if(!st) return st; 
 	switch(st.type)	{
 		case 'Program': 
@@ -199,31 +202,32 @@ sec_types.typeCheckAssignmentExpr = function (assign_expr, type_env, pc_level_se
 };
 
 sec_types.typeCheckVarAssignmentExpr = function (assign_expr, type_env, pc_level_set) {
-   var compiled_assignment_stmt, compiled_right_side, cond, err, level_set, ret_right_side, stmts, var_name, var_type_set;
+   var compiled_assignment_stmt, compiled_right_side, cond, err, level_set, 
+      new_type_var, ret_right_side, stmts, var_name, var_type_set;
 
    var_name = assign_expr.left.name; 
-   if (!type_env.hasOwnProperty(var_name)) {
-   	  err = new Error('Typing Error: Incomplete Typing Environment');
-   	  err.typing_error = true; 
-      throw err;
-   }
-    
    ret_right_side = this.typeCheck(assign_expr.right, type_env, pc_level_set);
-   var_type_set = [{element: type_env[var_name], cond: 'true'}];  
-   cond = this.conds.when(ret_right_side.type_set, var_type_set, this.isSubType);
-   if (!cond) {
-      // alert('Typing Error: Illegal Assignment'); 
-      err = new Error('Typing Error: Illegal Assignment');
-      err.typing_error = true; 
-      throw err; 
-   }
-   
    compiled_assignment_stmt = window.esprima.delegate.createAssignmentExpression('=', 
    	  window.esprima.delegate.createIdentifier(var_name), 
    	  $.extend(true, {}, ret_right_side.expr));
    compiled_assignment_stmt = window.esprima.delegate.createExpressionStatement(compiled_assignment_stmt);
-   
-   compiled_assignment_stmt = this.buildIfWrapper([compiled_assignment_stmt], cond); 
+  
+   if (!type_env.hasOwnProperty(var_name)) {
+      // We have to extend the typing environment... 
+      new_type_var = this.conds.unwrapType(ret_right_side.type_set);
+      type_env[var_name] = new_type_var;     	  
+   } else {
+      var_type_set = [{element: type_env[var_name], cond: 'true'}];  
+      cond = this.conds.when(ret_right_side.type_set, var_type_set, this.isSubType);
+      if (!cond) {
+         // alert('Typing Error: Illegal Assignment'); 
+         err = new Error('Typing Error: Illegal Assignment');
+         err.typing_error = true; 
+         throw err; 
+      }	
+      compiled_assignment_stmt = this.buildIfWrapper([compiled_assignment_stmt], cond);	
+   }
+        
    stmts = ret_right_side.stmts; 
    stmts.push(compiled_assignment_stmt); 
    
@@ -347,12 +351,18 @@ sec_types.typeCheckPropertyAssignmentExpr = function (prop_assign_expr, type_env
    var compiled_assignment_stmt, cond, cond_type, cond_level, err, 
       level_set, lev_set_obj, lev_set_prop, lev_set_obj_prop,  
       look_up_set, look_up_level_set, look_up_type_set, new_vars, 
-      property_annotation, ret_obj, ret_obj_type_set, ret_expr, ret_prop, ret_right, stmts; 
+      property_annotation, prop_expr, ret_obj, ret_obj_type_set, ret_expr, ret_prop, ret_right, stmts; 
    
    property_annotation = prop_assign_expr.left.property.property_set;
+   
+   if (!prop_assign_expr.left.computed) {
+      prop_expr = window.esprima.delegate.createLiteral2(prop_assign_expr.left.property.name);	
+   } else {
+   	  prop_expr = prop_assign_expr.left.property;
+   }
     
    ret_obj = this.typeCheck(prop_assign_expr.left.object, type_env, pc_level_set); 
-   ret_prop = this.typeCheck(prop_assign_expr.left.property, type_env, pc_level_set); 
+   ret_prop = this.typeCheck(prop_expr, type_env, pc_level_set); 
    ret_right = this.typeCheck(prop_assign_expr.right, type_env, pc_level_set); 
    
    ret_obj_type_set = this.conds.floor(ret_obj.type_set, 'OBJ'); 
@@ -699,7 +709,7 @@ sec_types.typeCheckMethodCallExpr = function (method_call_expr, type_env, pc_lev
    
    type_object = this.conds.unwrapType(ret_object.type_set);
    type_property = this.conds.unwrapType(ret_property.type_set);
-   ret_look_up = this.objCovariantStaticLookup(type_object, method_call_expr.callee.property, property_annotation);
+   ret_look_up = this.objCovariantStaticLookup(type_object, prop_expr, property_annotation);
    method_type = ret_look_up.type; 
    method_level = ret_look_up.level; 
    
@@ -834,6 +844,11 @@ sec_types.typeCheckThisExpr = function (this_expr, type_env, pc_level_set) {
 };
 
 sec_types.typeCheckVarDeclaration = function (var_decl, type_env, pc_level_set) {
+   var type_set; 
+   
+   type_set = this.conds.makeCondSet(this.buildPrimType(lat.bot), 'true'); 
+   type_set = this.conds.levExp(type_set, pc_level_set); 
+   
    return {
       new_vars: [],
       stmts: [],
@@ -962,6 +977,16 @@ sec_types.extendTypingEnvironment = function (type_env, fun_type, params) {
       var_name = params[i].name; 
       type = fun_type.parameter_types[i];
       new_type_env[var_name] = type;
+   }
+   
+   if (fun_type.var_types) {
+      for (prop in fun_type.var_types) {
+         if (fun_type.var_types.hasOwnProperty(prop)) {
+            var_name = prop; 
+            type = fun_type.var_types[prop]; 
+            new_type_env[var_name] = type; 	
+         }	
+      }	
    }
    
    new_type_env[sec_types.this_prop] = fun_type.this_type;

@@ -9,7 +9,7 @@ var option = {
 };
 
 // code mirror variable
-var cm, cm_output;
+var cm, cm_output, cm_contact_manager, cm_contact_manager_output;
 
 //categories and examples
 var examples_by_cat = [];
@@ -25,15 +25,22 @@ var atab = "intro";
 // typing
 var typing_environment = {};
 var my_types = {}; 
+var contact_manager_types = {}; 
 
 window.addEventListener('load', function() {
-   var i; 
+   var cm_types, cm_code, i, len, parsed_type, prop, ret, str, type, type_name; 
    cm = CodeMirror.fromTextArea(document.getElementById('jsi'), 
           {lineNumbers: true, mode: "javascript"});
 
    cm_output = CodeMirror.fromTextArea(document.getElementById('jso'), 
           {lineNumbers: true, mode: "javascript"});
+   
+   cm_contact_manager = CodeMirror.fromTextArea(document.getElementById('ta-cm-input-code'), 
+          {lineNumbers: true, mode: "javascript"});
 
+   cm_contact_manager_output = CodeMirror.fromTextArea(document.getElementById('ta-cm-output-code'), 
+          {lineNumbers: true, mode: "javascript"});
+          
    category_select = document.getElementById('cat');
    example_select = document.getElementById('ex');
    
@@ -54,6 +61,33 @@ window.addEventListener('load', function() {
    
    //  #div-res-type, #div-res-writing-effect, #div-jso { display: none; }
    $("#div-res-type").hide();
+   
+   //
+   cm_types = contactManagerTypes();
+   str = '';
+   contact_manager_types = {};
+   while (cm_types.length) {
+   	  ret = cm_types.pop(); 
+      type_name = ret.type_name; 
+      type = ret.type; 
+      str += type_name + ': ' + type + '\n\n'; 
+      try {
+         type_parser.full_str = type;
+         ret = type_parser.parseType(0);
+	     parsed_type = ret.type;
+	     my_types[type_name] = parsed_type; 
+	     contact_manager_types[type_name] = parsed_type;
+      } catch (e) {
+	     alert('Illegal Contact Manager Type!');
+	     return false; 
+      } 
+   }
+   
+   $('#cm-sec-types').val(str);
+   
+   cm_code = $('#code_contact_manager').text(); 
+   cm_contact_manager.setValue(cm_code);
+   my_types = {}; 
 });
 
 function handleOutputTypeDisplayChange () {
@@ -174,6 +208,7 @@ function tab(id) {
    atab = id;
 
    cm.refresh();
+   cm_contact_manager.refresh(); 
    return void(0);
 }
 
@@ -553,8 +588,43 @@ function typecheck () {
       	 return;
       }
       alert ('Program successfully Typed! Check Instrumentation Below.');
-   }
+   }  
+}
+
+function typeCheckCM () {
+   var instrumentation, output, st, str, typing_environment; 
    
+   typing_environment = {}; 
+   
+   // initialize the typing environments
+   typing_environment = {};
+   my_types = {}; 
+   contact_manager_types = {}; 
+   
+   str = $('#cm-sec-types').val();
+   contact_manager_types = type_parser.parseVariableTypes(str, true); 
+  
+   if (document.getElementById('radbutton_cm_output').checked) {
+      // typecheck contact manager
+      try {
+      	 str = cm_contact_manager.getValue();
+         st = window.esprima.parse(str);
+         typing_environment.CM = contact_manager_types['**contact_manager_type'];
+         output = sec_types.typeCheck(st, typing_environment);
+         instrumentation = output.instrumentation; 
+         instrumentation = window.escodegen.generate(instrumentation, option); 
+         cm_contact_manager_output.setValue(instrumentation);
+         alert('Contact Manager Successfully Typed!'); 
+      } catch (e) {
+      	 if (e.typing_error) {
+      	 	alert(e.message);
+      	 } else {
+      	    alert ('Contact Manager cannot be typed due to syntactic error.');	
+      	 }	
+      }
+   } else if (document.getElementById('radbutton_cm_execute').checked) {
+      // execute Contact Manager 
+   } 
 }
 
 

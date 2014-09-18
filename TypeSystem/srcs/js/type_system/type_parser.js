@@ -49,7 +49,7 @@ type_parser.parseTypeVariable = function (index) {
 type_parser.parseTypeName = function (index) {
    var ret, type; 
    
-   ret = this.parseWord(index, [' ', '>', '\n', '\t', ')', ',', '.']);
+   ret = this.parseWord(index, [' ', '>', '\n', '\t', ')', ',', '.', ']']);
    type = $.extend(true, {}, my_types[ret.word]);
    index = ret.index;    
    type.my_type_name = ret.word; 
@@ -190,7 +190,7 @@ type_parser.parseRowType = function (index) {
    // check first char 
    this.check_char(index, '<'); 
    index++; 
-   index = this.skip(index); 
+   index = this.skip(index, [' ', '\n', '\t']); 
    
    star_type = null; 
    star_level = null; 
@@ -201,7 +201,11 @@ type_parser.parseRowType = function (index) {
      ret = this.parseWord(index, ['^']); 
      index = ret.index; 
      prop = ret.word;
-     index = this.skip(index);
+     index = this.skip(index, [' ', '\n', '\t']);
+     
+     if (prop === '__proto__') {
+        prop = sec_types.my_proto; 
+     }
      
      // Parse Property Level
      this.check_str(index, index+2, '^{'); 
@@ -239,13 +243,17 @@ type_parser.parseRowType = function (index) {
      c = full_str[index];      
      if (c === ',') {
         index++; 
-        index = this.skip(index); 
+        index = this.skip(index, [' ', '\n', '\t']); 
         continue;
-     } else if (c === '>') {
-        index++; 
-        break;
      } else {
-        throw new Error ('Object Type Incorrectly Specified: You Must Separate Properties with a Comma'); 
+     	index = this.skip(index, [' ', '\n', '\t']);
+     	c = full_str[index];
+        if (c === '>') {
+           index++; 
+           break;
+        } else {
+           throw new Error ('Object Type Incorrectly Specified: You Must Separate Properties with a Comma'); 
+        }
      } 
    }
    
@@ -262,7 +270,7 @@ type_parser.parseRowType = function (index) {
  * FUN<OBJ<k><p1: PRIM^{0}, p2: PRIM^{1}><PRIM^{1}>^{0}.(PRIM^{1})->^{1}PRIM^{1}?<true>>^{0}?{true}
  */
 type_parser.parseFunType = function (left_index) {
-   var args_types, context_level, formula, index, level, parameter_types, ret, ret_type, this_type; 
+   var args_types, context_level, formula, index, level, parameter_types, ret, ret_type, this_type, var_types; 
    
    full_str = this.full_str;
    index = left_index; 
@@ -288,7 +296,16 @@ type_parser.parseFunType = function (left_index) {
    ret = this.parseParameterTypes(index);
    parameter_types = ret.parameter_types;
    index = ret.index;
-   index = this.skip(index); 
+   index = this.skip(index);
+  
+   //parse declared variable types
+   if (this.full_str[index] === '[') {
+      ret = this.parseVarTypes(index); 
+      index = ret.index; 
+      var_types = ret.var_types; 
+   } 
+   
+   index = this.skip(index);
    this.check_str(index, index+4, '->^{');
    index += 4; 
    
@@ -320,10 +337,64 @@ type_parser.parseFunType = function (left_index) {
    index++; 
    
    return {
-      type: sec_types.buildFunType(this_type, parameter_types, context_level, ret_type, level), 
+      type: sec_types.buildFunType(this_type, parameter_types, context_level, ret_type, level, var_types), 
       index: index
    };     
 };
+
+/*
+ * [var_name: vartype, var_name: var_type]
+ */
+type_parser.parseVarTypes = function (index) {
+   var full_str, index, var_types, ret, type, var_name;
+   
+   var_types = {};  
+   full_str = this.full_str;
+   
+   this.check_char(index, '['); 
+   index++; 
+   index = this.skip(index); 
+   
+   while (true) {
+   	  if (full_str[index] === ']') {
+         index++; 
+         break; 
+      }
+       
+      // parse var_name
+      ret = this.parseWord(index, [':']);
+      var_name = ret.word;
+      index = ret.index;
+      index++; 
+      
+      // parse var_type
+      index = this.skip(index);
+      ret = this.parseType(index); 
+      type = ret.type; 
+      index = ret.index;
+      index = this.skip(index); 
+   
+      var_types[var_name] = type;
+      
+      if (full_str[index] === ',') {
+        index++; 
+        index = this.skip(index, [' ','\t', '\n']); 
+        continue;
+      } else if (full_str[index] === ']') {
+         index++; 
+         break; 
+      } else {
+         throw new Error ('Function Type Incorrectly Specified: You Must Separate Var Types with a Comma');
+      } 
+   }
+   
+   return {
+      var_types: var_types, 
+      index: index
+   }; 
+}; 
+
+
 
 /*
  * (\tau, \tau, ..., \tau)
@@ -339,6 +410,11 @@ type_parser.parseParameterTypes = function (index) {
    index = this.skip(index); 
    
    while (true) {
+   	  if (full_str[index] === ')') {
+         index++; 
+         break; 
+      }
+       
       // process this type
       ret = this.parseType(index);
       type = ret.type;
@@ -354,7 +430,7 @@ type_parser.parseParameterTypes = function (index) {
          index++; 
          break; 
       } else {
-          throw new Error ('Function Type Incorrectly Specified: You Must Separate Argument Types with a Comma');
+         throw new Error ('Function Type Incorrectly Specified: You Must Separate Argument Types with a Comma');
       } 
    }
    
@@ -425,13 +501,14 @@ type_parser.check_str = function (l_index, r_index, expected_str, error_message)
    }
 };
 
-type_parser.parseVariableTypes = function () {
+type_parser.parseVariableTypes = function (full_str, store_in_my_types) {
    var gamma, index, ret, type, var_name;
    
    gamma = {};
    index = 0; 
-   while (index < this.full_str.length) {
-      index = this.skip(index); 
+   index = this.skip(index);
+   this.full_str = full_str; 
+   while (index < full_str.length) { 
       ret = this.parseWord(index, [':']); 
       var_name = ret.word; 
       index = ret.index; 
@@ -441,13 +518,12 @@ type_parser.parseVariableTypes = function () {
       ret = this.parseType(index); 
       type = ret.type; 
       index = ret.index; 
-      index = this.skip(index);
-      this.check_char(index, '\n'); 
-      index++;
       gamma[var_name] = type;  
+      if (store_in_my_types) {
+         my_types[var_name] = type; 	
+      }
       index = this.skip(index, [' ', '\n', '\t']);
-   }   
-       
+   }    
    return gamma; 
 }; 
 
@@ -518,5 +594,3 @@ type_parser.parseLitTypes = function () {
    lit_types = this.parseItemList(this.parseType, 'type', '\n'); 
    return lit_types;
 };
-
-
