@@ -124,8 +124,7 @@ function loadex () {
     selector = '#example_categories div.category[name='+current_cat_name+'] div';
 	types_text = $('.mytypes', $($(selector)[selected_index])).text();  
 	
-	type_parser.full_str = types_text; 
-    gamma = type_parser.parseVariableTypes();
+    gamma = type_parser.parseVariableTypes(types_text);
     my_types = {}; 
     domClearMyTypes();
    
@@ -140,9 +139,8 @@ function loadex () {
 	//typing environment 
 	selector = '#example_categories div.category[name='+current_cat_name+'] div';
 	types_text = $('.types', $($(selector)[selected_index])).text();  
-	
-	type_parser.full_str = types_text; 
-    gamma = type_parser.parseVariableTypes();
+	 
+    gamma = type_parser.parseVariableTypes(types_text);
     typing_environment = {}; 
     domClearSecurityTypes();
    
