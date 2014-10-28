@@ -1,31 +1,27 @@
 comp.identifiers = {}; 
 
 comp.identifiers.consts = {
-	AUX_IDENT: '_aux',
-	LAB_IDENT: '_lab',
-	LAB_PROP_IDENT: '_lab', 
-	LEV_VAR_IDENT: '_lev_',
-	LEV_PROP_IDENT: '_lev', 
-	PC_IDENT: '_pc',   
-	PC_HOLDER_IDENT: '_pc_holder_',
-	PC_PROP_IDENT: '_pc', 
-	VAL_VAR_IDENT: '_val_',
-	VAL_PROP_IDENT: '_val',
-	RUNTIME_IDENT: '_runtime',
-	INSTRUMENTED_PROP_IDENT: '_instrumented', 
-	ARGS_LEVELS_PARAM: 'args_levels', 
-	IS_ARGUMENTS_ARRAY: '_is_arguments_array', 
-	IFLOW_SIG_IDENT: '_iflow_sig', 
-	LEV_CTXT_IDENT: '_lev_ctxt', 
-	LEV_FSCOPE_IDENT: '_lev_fscope',
-	VAR_SHADOW_PREFIX: '_lev_', 
-	RET_IDENT: '_ret', 
-	NO_RET_PROP_IDENT: '_no_ret',
-	STRUCT_PROP_IDENT: '_lev_struct', 
-	PROTO_PROP_IDENT: '_proto',
-	PROTO_PROP_LEV_IDENT: '_lev_proto', 
-	LEV_HOLDER_IDENT: '_lev_holder_', 
-	INSPECTOR_IDENT: '_inspector'
+	LEV_HOLDER_IDENT: '$lev_', 
+	VAL_HOLDER_IDENT: '$val_',
+	PC_HOLDER_IDENT: '$pc_holder_',
+	PC_IDENT: '$pc',  
+	PC_FUN_IDENT: '$pc_fun',  
+	LEV_CTXT_IDENT: '$lev_ctxt',
+	RET_IDENT: '$ret',
+    RUNTIME_IDENT: '$runtime',
+    VAR_SHADOW_PREFIX: '$shadow_',  
+    CHECK_IDENT: '$check', 
+    LEGAL_IDENT: '$legal', 
+    IFLOW_SIG_IDENT: '$iflow_sig',
+    IFLOW_REG_IDENT: '$register',
+    INSPECT_IDENT: '$inspect',
+    PROP_DYN_SHADOW: '$shadowV',
+    EXIST_DYN_SHADOW: '$shadowE',
+	STRUCT_PROP_IDENT: '$struct', 
+	PROTO_PROP_STR: '\'__proto__\'',
+	LEV_RET: 'prop_lev', 
+    VAL_RET: 'prop_val',
+    LOCAL_EVAL: '$local_eval'
 }; 
 
 comp.identifiers.printState = function() {
@@ -80,7 +76,7 @@ comp.identifiers.getPcHolderVar = (function() {
    var i = 0;
    return function() {
       i++;
-      return { pc_holder: this.consts.PC_HOLDER_IDENT+i };
+      return this.consts.PC_HOLDER_IDENT+i;
    };
 })();
 
@@ -91,6 +87,26 @@ comp.identifiers.getLevHolderVar = (function() {
       return { lev_holder: this.consts.LEV_HOLDER_IDENT+i };
    };
 })();
+
+comp.identifiers.getValHolderVar = (function() {
+   var i = 0;
+   return function() {
+      i++;
+      return { val_holder: this.consts.VAL_HOLDER_IDENT+i };
+   };
+})();
+
+comp.identifiers.getLevValHolderVars = (function() {
+   var i = 0;
+   return function() {
+      i++;
+      return { 
+         val_holder: this.consts.VAL_HOLDER_IDENT+i, 
+         lev_holder: this.consts.LEV_HOLDER_IDENT+i 
+      };
+   };
+})();
+
 
 comp.identifiers.randomizeIdentifiers = function() {
    var n; 

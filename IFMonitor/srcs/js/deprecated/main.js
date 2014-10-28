@@ -28,7 +28,7 @@
 		input_ta = document.getElementById('prog_input');
 		st = window.esprima.parse(input_ta.value);
 
-		st = comp.setUpCompiler(st, coercions_cb.checked, apis_cb.checked, eval_cb.checked);
+		//st = comp.setUpCompiler(st, coercions_cb.checked, apis_cb.checked, eval_cb.checked);
 		compiled_st = comp.compile(st);
 		// To remove:
 		str = JSON.stringify(compiled_st, null, '   ');

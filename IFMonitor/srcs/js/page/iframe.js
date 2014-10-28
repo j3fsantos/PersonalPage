@@ -4,11 +4,11 @@ var setUpCSSNode = function(css_text) {
 	var css_node = document.createElement('style');
 	css_node.type = 'text/css';
 
-	if (css_node.styleSheet)
+	if (css_node.styleSheet) {
 		css_node.styleSheet.cssText = css_text;
-	else
+	} else {
 		css_node.appendChild(document.createTextNode(css_text));
-
+	}
 	document.getElementsByTagName("head")[0].appendChild(css_node);
 };
 
@@ -23,6 +23,7 @@ var messageHandler = function(message) {
 	if (data_type === 'comp') {
 		try {
 			eval(data);
+			source.postMessage('Success!', origin);
 		} catch(e) {
 			if (e.message === 'IFlow Exception') {
 				source.postMessage('IFlow Exception', origin);
@@ -38,12 +39,12 @@ var messageHandler = function(message) {
 };
 
 var setUpIFSig = function (ifsig_text) {
-   var _enforce, _isInDomain, if_sig, _updtLab; 
+   var check, domain, if_sig, label; 
    eval(ifsig_text);
    if_sig = {
-      _enforce: _enforce, 
-      _isInDomain: _isInDomain, 
-      _updtLab: _updtLab
+      check: check, 
+      domain: domain, 
+      _updtLab: label
    }; 
    _runtime.api_register.registerIFlowSig(if_sig); 
 }; 

@@ -1,0 +1,8 @@
+BUGS:
+ 
+ 1) when you update a named type - the types in the typing environment that use 
+    it - are not updated :( => Solution: named types cannot be updates :(
+ 
+ 2) Clean the excessive number of generated block statements... 
+ 
+ 3) 

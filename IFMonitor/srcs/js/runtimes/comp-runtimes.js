@@ -10,140 +10,200 @@
  * 10) _runtime.api_register.registerIFlowSig(sig)
  */
 
-
 (function(exports) {
-	
    var consts = {
-      IFLOW_SIG_IDENT: '_iflow_sig', 
-      STRUCT_PROP_IDENT: '_lev_struct',
-      PROTO_PROP_IDENT: '_proto',
-      PROTO_PROP_LEV_IDENT: '_lev_proto', 
-      VAR_SHADOW_PREFIX: '_lev_'
+      VAR_SHADOW_PREFIX: '$shadow_',
+      PROTO_PROP_STR: '__proto__', 
+      STRUCT_PROP_IDENT: '$struct', 
+      DOM_STRUCT: '$struct', 
+      DOM_POS: '$pos', 
+      DOM_VAL: '$val',
+      //childNodes
+      DOM_LEV: '$lev', 
+      DOM_PARENT: '$dom_parent', 
+      // live collections
+      LIVE_LEV: '$live_lev', 
+      LIVE_ROOT: '$live_root',
+      LIVE_TAG: '$live_tag',
+      TAG_LEVELS: '$tag_levels'
    }; 
-	
-   var api_register_table = [];
-   var api_register = {};
-   	
-   api_register.getIFlowSig = function (left, right, lab) {
-      var iflow_sig; 
-      for (len = api_register_table.length, i = len-1; 0 <= i; i--) {
-         iflow_sig = api_register_table[i];
-	     if (iflow_sig._isInDomain(left, right, lab)) {
-	        return api_register_table[i];
-	     } 
-	  }
-	  return null;  
-   };
+   exports.consts = consts;
    
-   api_register.defaultProcessArg = function (arg) { return arg; }; 
-   api_register.defaultProcessRet = function (ret) { return ret; }; 
-   
-   /*
-    * iflow_sig: _updtlab, _enforce, _processArg, _processRet, _isInDomain
-    */
-   
-   api_register.registerIFlowSig = function (iflow_sig) {
-      if (!iflow_sig._processArg) {
-         iflow_sig._processArg = api_register.defaultProcessArg; 
-      } 
-      
-      if (!iflow_sig._processRet) {
-         iflow_sig._processRet = api_register.defaultProcessRet; 
-      }
-      api_register_table.push(iflow_sig);  
-   };
-		
-   var shadow = function (prop) {
-      return consts.VAR_SHADOW_PREFIX + prop; 
-   }; 
-   
-   var diverge = function (text) {
-      text = text || 'IFlow Exception';
-      throw new Error(text); 
-   };
-   
-   var create = function (proto, lev) {
-      var F, obj;  
-      if(proto) {
-         F = function () {}; 
-         F.prototype = proto; 
-		 obj = new F();
-      } else {
-	     obj = {}; 
-	  }
-	  
-	  defineProperty(obj, consts.STRUCT_PROP_IDENT, {enumerable: false, value: lev, writable: true});
-	  defineProperty(obj, consts.PROTO_PROP_LEV_IDENT, {enumerable: false, value: lev, writable: true});
-	  defineProperty(obj, consts.PROTO_PROP_IDENT, {enumerable: false, value: proto, writable: true});
-	  
-	  return obj; 
-   };
-   
-   var call = function (method, obj) {
-      var inner_args = [], func, apply_func, i, len;
-      
-      for (i = 2, len = arguments.length; i < len; i++) {
-         inner_args.push(arguments[i]);
-      }
-      
-      return method.apply(obj, inner_args); 
-   };
-   
-   var obj = {};
-   var hasOwnPropertyOriginal = obj.hasOwnProperty;
-   
+   var o = {}; 
+   var hasOwnPropertyOriginal = o.hasOwnProperty;
    var hasOwnProperty = function (obj, prop) {
       return hasOwnPropertyOriginal.apply(obj, [ prop ]);    
    };
+   exports.hasOwnProperty = hasOwnProperty; 
    
-   var definePropertyOriginal = Object.defineProperty;
-   
-   var defineProperty = function (obj, prop, attr) {
-      definePropertyOriginal.apply(Object, [obj, prop, attr]); 
-   };
-   
-   var array_prototype = Array.prototype;
-   
-   var randomizeRuntimeConsts = function () {
-      var n;
-      n = Math.random() * 1000;
-      n = Math.floor(n);
-      for (var prop in exports.consts) {
-         exports.consts[prop] = exports.consts[prop] + '_' + n + '_';
-      }
-      return n;
-   };
-
    var createShadowWindowProperties = function () {
       var prop, shadow_prop; 
       for (prop in window) {
          shadow_prop = consts.VAR_SHADOW_PREFIX + prop; 
          if (!hasOwnProperty(window, shadow_prop)) {
-            defineProperty(window, shadow_prop, {
+            Object.defineProperty(window, shadow_prop, {
                enumerable : false,
                value : exports.lat.bot,
                writable : true
             }); 
          }
       }
+      document[consts.TAG_LEVELS] = {};
+      setUpDocument(document);
+   }; 
+   exports.createShadowWindowProperties = createShadowWindowProperties;
+   
+   var getTagLevel = function (tag) {
+      if (hasOwnProperty(document[consts.TAG_LEVELS], tag)) {
+         return document[consts.TAG_LEVELS][tag];
+      } else {
+      	 return $runtime.lat.bot;
+      }
+   };
+   exports.getTagLevel = getTagLevel;
+   
+   var setTagLevel = function (tag, tag_level) {
+   	  document[consts.TAG_LEVELS][tag] = tag_level;
+   };
+   exports.setTagLevel = setTagLevel; 
+   
+   var predicateWLD = function (node, last_tag_level_register) {
+      
+      if (!last_tag_level_register) return last_tag_level_register; 
+      if ((node.nodeType !== 1) && (node.nodeType !== 3) && (node.nodeType !== 9)) return last_tag_level_register;
+      
+      // Constraint 1 - position levels must be increasing 
+      $check(exports.lat.leq(last_tag_level_register[node.tagName], node[consts.DOM_POS]));
+      
+      // Constraint 2 - levels must be lower than the tag levels
+      $check(exports.lat.leq(node[consts.DOM_POS], getTagLevel(node.tagName)));
+      
+      last_tag_level_register[node.tagName] = node[consts.DOM_POS];
+      
+      if (!node.childNodes) return last_tag_level_register;
+        
+      for (var i = 0, len = node.childNodes.length; i < len; i++) {
+         last_tag_level_register = predicateWLD(node.childNodes[i], last_tag_level_register); 
+      }
+      
+      return last_tag_level_register; 
+   }; 
+   exports.predicateWLD = predicateWLD;
+   
+   var setUpDocument = function (node) {
+      
+      if (!node) return; 
+      if ((node.nodeType !== 1) && (node.nodeType !== 3) && (node.nodeType !== 9)) return;
+      
+      node[consts.DOM_STRUCT] = exports.lat.bot; 
+      node[consts.DOM_POS] = exports.lat.bot; 
+      node[consts.DOM_VAL] = exports.lat.bot; 
+      
+      node.dom_upg_struct = function () {};
+      node.dom_upg_pos = function () {};
+      
+      if (!node.childNodes) return;
+        
+      for (var i = 0, len = node.childNodes.length; i < len; i++) {
+         setUpDocument(node.childNodes[i]); 
+      }
    }; 
    
-   exports.api_register = api_register; 
-   exports.shadow = shadow; 
-   exports.diverge = diverge; 
-   exports.create = create; 
-   exports.call = call; 
-   exports.hasOwnProperty = hasOwnProperty;
-   exports.defineProperty = defineProperty; 
-   exports.array_prototype = array_prototype;
-   exports.createShadowWindowProperties = createShadowWindowProperties;
-   exports.consts = consts; 
    
-})(_runtime);
+})($runtime);
 
+(function(exports){
+   var consts = {
+      VAR_SHADOW_PREFIX: '$shadow_',
+      PROTO_PROP_STR: '__proto__', 
+      STRUCT_PROP_IDENT: '$struct'
+   }; 
+   
+   var api_register_table = [];
+   var $register;
+   var $addIFlowSig;
+   var o = {}; 
+   var internalHasOwnProperty = o.hasOwnProperty;
+   
+   var hasOwnProperty = function (obj, prop) {
+      return internalHasOwnProperty.call(obj, prop);    
+   };
+   
+   var $shadow = function (prop) {
+      return consts.VAR_SHADOW_PREFIX + prop; 
+   }; 
+   	
+   $register = function (left, right) {
+      var iflow_sig; 
+      for (len = api_register_table.length, i = len-1; 0 <= i; i--) {
+         iflow_sig = api_register_table[i];
+	     if (iflow_sig.domain(left, right)) {
+	        return api_register_table[i];
+	     } 
+	  }
+	  return null;  
+   };
+    
+   $addIFlowSig = function (iflow_sig) {
+      api_register_table.push(iflow_sig);  
+   };
+   
+   $check = function (arg, text) {
+      if (!arg) {
+      	text = text || 'IFlow Exception'; 
+        throw new Error(text); 
+      }
+   };
 
-
-
+   $shadowE = function (prop) {
+      return consts.VAR_SHADOW_PREFIX + 'e_' + prop; 
+   };
+   
+   $shadowV = function (prop) {
+      return consts.VAR_SHADOW_PREFIX + 'v_' + prop; 
+   };
+   
+   $legal = function (prop) {
+   	  if (prop[0] === '$') {
+   	  	return false;
+   	  } else {
+   	  	return true;
+   	  } 
+   };
+   
+   $inspect = function (o, prop, level) {
+      var o_proto, new_lev;
+    
+      if (level === undefined) {
+   	     level = $runtime.lat.bot;
+   	  }
+   	  
+   	  if (!hasOwnProperty(o, $shadowV(consts.PROTO_PROP_STR))) {
+   	     return level;    	
+   	  }
+   	   
+   	  if (hasOwnProperty(o, prop)) {
+         return level;	
+      } else {
+       	 o_proto = o.__proto__;
+       	 new_lev = $runtime.lat.lub(level, 
+       	 	o[$shadowV(consts.PROTO_PROP_STR)],
+       	 	o[consts.STRUCT_PROP_IDENT]);
+       	 return $inspect(o_proto, prop, new_lev); 
+      }
+   };
+   
+   exports.$addIFlowSig = $addIFlowSig;
+   exports.$register = $register; 
+   exports.$shadow = $shadow;
+   exports.$shadowE = $shadowE;
+   exports.$shadowV = $shadowV;   
+   exports.$legal = $legal; 
+   exports.$check = $check; 
+})(window);
+   
+   
+ 
 
 
 
