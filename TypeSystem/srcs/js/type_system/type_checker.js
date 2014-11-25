@@ -380,7 +380,7 @@ sec_types.typeCheckPropertyAssignmentExpr = function (prop_assign_expr, type_env
    cond_level = this.conds.when(lev_set_obj_prop, look_up_level_set, lat.leq);
    if (!cond_type || !cond_level) {
       //alert('Typing Error: Illegal Assignment'); 
-      err = new Error('Typing Error: Illegal Assignment');
+      err = new Error('Typing Error: Illegal Property Assignment');
       err.typing_error = true; 
       throw err; 
    }

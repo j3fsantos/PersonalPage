@@ -560,10 +560,22 @@ function typecheck () {
    str = cm.getValue();
    
    if (document.getElementById('radbutton_st').checked) {
-      alert('This functionality is still under development');	  
+   	 try {
+   	   	 st = window.esprima.parse(str); 
+         output = sec_types.staticTC(st, typing_environment); 
+         $('#res-type').val(sec_types.printType(output));	
+      } catch (e) {
+         if ((typeof e === 'object') && e.typing_error) {
+      	    alert(e.message);   	
+      	 }
+      	 else {
+      	    alert ('Program cannot be typed due to syntactic error.');	
+      	 }
+      	 return;
+   	  }	  
+   	  alert ('Program successfully Typed!');
    } else {
    	  try {
-   	  	
    	   	 st = window.esprima.parse(str); 
          output = sec_types.typeCheck(st, typing_environment); 
          instrumentation = output.instrumentation; 
