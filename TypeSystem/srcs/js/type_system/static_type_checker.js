@@ -2,56 +2,56 @@ if (!sec_types) {
    throw new Error('sec_types object is supposed to be defined when running type_checker.js'); 
 }
 
-sec_types.staticTC = function (st, type_env, pc_level) {	
+sec_types.staticTC = function (st, type_env, pc_level, cur_fun_type) {	
    if (!pc_level) {
       pc_level = lat.bot; 
    }
    if(!st) return st; 
 	switch(st.type)	{
 		case 'Program': 
-		   return this.staticTCProgram(st, type_env, pc_level); 
+		   return this.staticTCProgram(st, type_env, pc_level, cur_fun_type); 
 		case 'ExpressionStatement': 
-		   return this.staticTCExprStmt(st, type_env, pc_level); 
+		   return this.staticTCExprStmt(st, type_env, pc_level, cur_fun_type); 
 		case 'Literal': 
-		   return this.staticTCLiteral(st, type_env, pc_level); 
+		   return this.staticTCLiteral(st, type_env, pc_level, cur_fun_type); 
 		case 'Identifier': 
-		   return this.staticTCIdentifier(st, type_env, pc_level);   
+		   return this.staticTCIdentifier(st, type_env, pc_level, cur_fun_type);   
 		case 'AssignmentExpression': 
-		   return this.staticTCAssignmentExpr(st, type_env, pc_level); 
+		   return this.staticTCAssignmentExpr(st, type_env, pc_level, cur_fun_type); 
 		case 'BinaryExpression': 
 		   if (st.operator === 'in')
-		      return this.staticTCInExpr(st, type_env, pc_level);
-		   else return this.staticTCBinOpExpr(st, type_env, pc_level); 
+		      return this.staticTCInExpr(st, type_env, pc_level, cur_fun_type);
+		   else return this.staticTCBinOpExpr(st, type_env, pc_level, cur_fun_type); 
 		case 'MemberExpression': 
-		   return this.staticTCPropertyLookUp(st, type_env, pc_level);
+		   return this.staticTCPropertyLookUp(st, type_env, pc_level, cur_fun_type);
 		case 'UnaryExpression':
 		   if (st.operator === 'delete') 
-		      return this.staticTCDeleteExpr(st, type_env, pc_level); 
-		   else return this.staticTCUnOpExpr(st, type_env, pc_level);
+		      return this.staticTCDeleteExpr(st, type_env, pc_level, cur_fun_type); 
+		   else return this.staticTCUnOpExpr(st, type_env, pc_level, cur_fun_type);
 		case 'IfStatement':
-	       return this.staticTCIfStmt(st, type_env, pc_level);  
+	       return this.staticTCIfStmt(st, type_env, pc_level, cur_fun_type);  
 	    case 'BlockStatement':
-	       return this.staticTCBlockStmt(st, type_env, pc_level);
+	       return this.staticTCBlockStmt(st, type_env, pc_level, cur_fun_type);
 	    case 'ObjectExpression': 
-		   return this.staticTCObjectExpr(st, type_env, pc_level); 
+		   return this.staticTCObjectExpr(st, type_env, pc_level, cur_fun_type); 
 		case 'LogicalExpression': 
-		   return this.staticTCBinOpExpr(st, type_env, pc_level);
+		   return this.staticTCBinOpExpr(st, type_env, pc_level, cur_fun_type);
 	    case 'WhileStatement': 
-	       return this.staticTCWhileStmt(st, type_env, pc_level);
+	       return this.staticTCWhileStmt(st, type_env, pc_level, cur_fun_type);
 	    case 'CallExpression':
-		   return this.staticTCCallExpr(st, type_env, pc_level);
+		   return this.staticTCCallExpr(st, type_env, pc_level, cur_fun_type);
 		case 'FunctionExpression': 
-	      return this.staticTCFunctionLiteralExpr(st, type_env, pc_level); 
+	      return this.staticTCFunctionLiteralExpr(st, type_env, pc_level, cur_fun_type); 
 	    case 'ReturnStatement': 
-	      return this.staticTCReturnStmt(st, type_env, pc_level);  
+	      return this.staticTCReturnStmt(st, type_env, pc_level, cur_fun_type);  
 	    case 'ThisExpression': 
-		   return this.staticTCThisExpr(st, type_env, pc_level); 
+		   return this.staticTCThisExpr(st, type_env, pc_level, cur_fun_type); 
         case 'VariableDeclaration': 
-	      return this.staticTCVarDeclaration(st, type_env, pc_level);  
+	      return this.staticTCVarDeclaration(st, type_env, pc_level, cur_fun_type);  
 	    case 'ConditionalExpression': 
-	      return this.staticTCConditionalExpr(st, type_env, pc_level); 
+	      return this.staticTCConditionalExpr(st, type_env, pc_level, cur_fun_type); 
 	    case 'SequenceExpression': 
-	      return this.staticTCSequenceExpr(st, type_env, pc_level); 
+	      return this.staticTCSequenceExpr(st, type_env, pc_level, cur_fun_type); 
 		default:  
 		   if (!st.type) {
 		   	throw new Error('Syntax Error - Illegal Program');
@@ -61,7 +61,7 @@ sec_types.staticTC = function (st, type_env, pc_level) {
 	}
 };
 
-sec_types.staticTCProgram = function (st, type_env, pc_level) {
+sec_types.staticTCProgram = function (st, type_env, pc_level, cur_fun_type) {
    var type; 
    
    if (st.type !== esprima.Syntax.Program) {
@@ -72,26 +72,26 @@ sec_types.staticTCProgram = function (st, type_env, pc_level) {
    if (!pc_level) pc_level = lat.bot; 
     	
    for (var stmts = st.body, i = 0, len = stmts.length; i < len; i++) {
-      type = this.staticTC(stmts[i], type_env, pc_level);
+      type = this.staticTC(stmts[i], type_env, pc_level, cur_fun_type);
    }
    
    return type;   
 }; 
 
-sec_types.staticTCBlockStmt = function (block_stmt, type_env, pc_level) {
+sec_types.staticTCBlockStmt = function (block_stmt, type_env, pc_level, cur_fun_type) {
    var type; 
      
    for (var stmts = block_stmt.body, i = 0, len = stmts.length; i < len; i++) {
-      type = this.staticTC(stmts[i], type_env, pc_level);
+      type = this.staticTC(stmts[i], type_env, pc_level, cur_fun_type);
    }
    
    return type;
 }; 
 
-sec_types.staticTCExprStmt = function (expr_stmt, type_env, pc_level) { 
+sec_types.staticTCExprStmt = function (expr_stmt, type_env, pc_level, cur_fun_type) { 
    var type; 
    
-   type = this.staticTC(expr_stmt.expression, type_env, pc_level);
+   type = this.staticTC(expr_stmt.expression, type_env, pc_level, cur_fun_type);
   
    return type;
 }; 
@@ -162,10 +162,14 @@ sec_types.staticTCPropertyLookUp = function (member_expr, type_env, pc_level) {
    var lev_type_look_up;  
    
    property_annotation = member_expr.property.property_set; 
+   type_obj = this.staticTC(member_expr.object, type_env, pc_level);
    if (!member_expr.computed) {
-      prop_expr = window.esprima.delegate.createLiteral2(member_expr.property.name);	
+      
+      
    } else {
    	  prop_expr = member_expr.property;
+   	  type_prop = this.staticTC(prop_expr, type_env, pc_level); 
+   	  lev_type_look_up = this.objCovariantStaticLookup(type_obj, prop_expr, property_annotation);
    }
    
    type_obj = this.staticTC(member_expr.object, type_env, pc_level); 

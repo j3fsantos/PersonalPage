@@ -117,9 +117,16 @@ Category: <select id="cat" onchange="catchange(this.value)"> </select> &nbsp;
 File: <select id="ex"> </select> &nbsp;
 <input type="button" value="Load" onclick="loadex();">
 </div>
+<div>
+<b>Load IFlow Signature:</b> &nbsp;
+File: <select id="iflow_ex"> </select> &nbsp;
+<input type="button" value="Load" onclick="loadIflowSig();">
+</div>
+
+
 
 <fieldset style="margin-bottom: 6px;padding-bottom:0px">
-<legend>Processing options</legend>
+<legend>Processing Options</legend>
 <p style="margin-top:0px">
 <!-- Action type:
  <input type="radio" name="type" value="0" id="radbutton_st" checked="checked" />
@@ -128,11 +135,13 @@ File: <select id="ex"> </select> &nbsp;
  <label for="pp">Load Signature</label>
  &nbsp; -->
  <input type="button" value="Execute" onclick="process();" />
+ &nbsp;
+ <input type="button" value="Add IFlow Signature" onclick="addSig();" />
 </p>
 </fieldset>
 
 <div>
-<b>Input script:</b>
+<b>Input script/Information Flow Signature:</b>
 <br />
 <textarea name="input" style="width:100%; height:250px;" id="jsi"> </textarea>
 
@@ -866,6 +875,12 @@ File: <select id="ex"> </select> &nbsp;
 		   </div>
    </div>
 
+</div>
+
+<div id="example_iflowsigs">
+<span data-iflow-desc="coiso">
+ 	asdf
+</span>
 </div>
 </body>
 

@@ -1,4 +1,5 @@
 // Option for escodegen
+
 var option = {
    format : {
       quotes : 'single',
@@ -31,6 +32,8 @@ window.addEventListener('load', function() {
    
    category_select = document.getElementById('cat');
    example_select = document.getElementById('ex');
+   
+   loadStoredIflowSigs();
    
    $(category_select).change(function(){
       var selected_index; 
@@ -159,6 +162,35 @@ var runCompiledProg = function() {
    } catch (e) {
 	  alert('A problem occurred when trying to communicate with exec iframe');
    }
+};
+
+var loadStoredIflowSigs = function () {
+   var iflow_sig_select; 
+   
+   iflow_sig_select = document.getElementById('iflow_ex');
+   $('#example_iflowsigs > span').each(function(index) {
+   	  var iflow_sig_name; 
+   	  iflow_sig_name = $(this).attr('data-iflow-desc'); 
+   	  iflow_sig_select.options.add(new Option(iflow_sig_name));	
+   });
+};
+
+var addSig = function () {
+   var str, iflow_sig; 
+   
+   alert("you entered loadSig, bastard :P");
+   str = cm.getValue();
+   cm_output.setValue('');
+   try {
+      iflow_sig = ifloweval(str);
+      $addIFlowSig(iflow_sig);    	
+   } catch (e) {
+   	  alert ('IFlow Signature could not be loaded.');	
+   }
+};
+
+var loadIflowSig = function () {
+	
 };
 
 window.addEventListener("message", messageHandler, true); 

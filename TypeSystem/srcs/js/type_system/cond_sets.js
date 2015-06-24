@@ -150,6 +150,7 @@ sec_types.getTypeObjStar = function (o) {
 	return ret_type; 
 };
 
+
 sec_types.objCovariantStaticLookup = function (obj_type, prop_expr_st, prop_set) {
    var cond, obj_type_domain, new_prop_set, prop, ret_type, ret_level;
    

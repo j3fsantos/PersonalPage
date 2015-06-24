@@ -155,5 +155,9 @@ input[type="button"]:active, input[type="submit"]:active {
 	display: none;
 }
 
+#example_iflowsigs {
+	display: none;
+}
+
 
 
