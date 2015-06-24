@@ -1,0 +1,621 @@
+<!doctype html>
+<html>
+
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <title>Typing Secure Information Flow in JavaScript</title>
+
+ <script src="srcs/js/libs/jquery-1.9.0.min.js"></script>
+ <script type="text/javascript" src="srcs/js/libs/jquery-ui-1.10.4.js"></script>
+ <script src="srcs/js/libs/jquery.validate.min.js"></script>
+ <script src="srcs/js/libs/esprima.js"></script>
+ <script src="srcs/js/libs/escodegen.js"></script>
+ 
+ <!-- Code mirror stuff -->
+ <script src="srcs/js/libs/codemirror/codemirror.js" type="text/javascript"></script>
+ <script src="srcs/js/libs/codemirror/htmlmixed.js"></script>
+ <script src="srcs/js/libs/codemirror/xml.js"></script>
+ <script src="srcs/js/libs/codemirror/javascript.js" type="text/javascript"></script>
+ <script src="srcs/js/libs/codemirror/css.js"> </script>
+ <script src="srcs/js/libs/codemirror/clike.js"> </script>
+ <script src="srcs/js/libs/codemirror/php.js"> </script>
+
+ <!-- Type System Stuff -->
+ <script src="srcs/js/type_system/utils.js"></script>
+ <script src="srcs/js/type_system/lattice.js"></script>
+ <script src="srcs/js/type_system/cond_sets.js"></script>
+ <script src="srcs/js/type_system/type_parser.js"></script>
+ <script src="srcs/js/type_system/static_type_checker.js"></script>
+ <script src="srcs/js/type_system/cm_types.js"></script> 
+ 
+ <link rel="stylesheet" href="srcs/styles/libs/codemirror.css" type="text/css" />
+ <link rel="stylesheet" type="text/css" href="srcs/styles/libs/jqueryui-themes/base/jquery-ui.css">
+ <!-- <link rel="stylesheet" type="text/css" href="srcs/styles/libs/jqueryui-themes/base/jquery-ui.all.css">-->
+ <link rel="stylesheet" href="srcs/styles/page/style.css" type="text/css" />
+ 
+  
+ <script type="text/javascript" src="srcs/js/page/scripts.js"></script>
+</head>
+<body>
+
+<h1><i class="iflowtypes-word">iflowTYPES.js</i> Typing Secure Information Flow in JavaScript</h1>
+
+<div id="tabs">
+	<table width="100%"><tr>
+       <td width="33%" align="center">
+       	   <a href="javascript:tab('intro');">Introduction</a>
+       </td>
+       
+       <td width="33%" align="center">
+       	   <a href="javascript:tab('type-checker');">Type Checker</a>
+       </td>     
+       
+       <td width="33%" align="center">
+       	   <a href="javascript:tab('case-study');">Case Study</a>
+       </td> 
+       
+    </tr></table>
+</div>
+
+<div id="intro">
+<h2>Introduction TGC</h2>
+
+<p>
+ <i class="iflowtypes-word">iflowtypes.js</i> is a JavaScript library designed to type secure 
+ information flow in JavaScript.
+ <i>iflowtypes.js</i> instruments the program to be typed in order to 
+ verify at runtime the statements that cannot be statically verified.
+ By deferring rejection to runtime, the hybrid 
+ type system is able to type more programs than fully static mechanisms. 
+</p>
+
+<p>
+ <i>iflowtypes.js</i> was designed as a didactical tool to support 
+ the paper <a href="hybrid-typing.pdf">Hybrid Typing of Secure Information Flow in a JavaScript-like Language</a>.
+</p>
+
+
+<h3>How to use the tool:</h3>
+
+<p>Check the videos below to see how to use the online tool.</p>
+
+<iframe width="420" height="315" src="https://www.youtube.com/embed/ZzevfXt-xZU" frameborder="0" allowfullscreen></iframe>
+
+<iframe width="420" height="315" src="https://www.youtube.com/embed/7i1eM-jGkBk" frameborder="0" allowfullscreen></iframe>
+
+
+<p>
+Please find the source code
+ <a href="TGCTypeSystem.zip" target="_blank">here</a>.
+</p>
+
+<small>
+	The design of this page was heavily inspired by the page of 
+	<a href="http://www.defensivejs.com">Defensive JS</a> by
+	<a href="http://antoine.delignat-lavaud.fr">Antoine Delignat-Lavaud</a>.
+</small>
+
+
+
+
+<!--
+
+Some questions regarding the type system:
+<ul>
+<li>
+In the paper, you claim that regardless of the precision of the property-set annotations, the hybrid 
+type system is always able to type a program, provided that there exist a set of property-set annotations
+with which it typable using the purely static type system. How is that possible?
+<blockquote>
+<b>A:</b> This is possible because...
+</blockquote>
+</li>
+
+<li>
+What about combinatorial explosion?
+<blockquote>
+<b>A:</b> This is an important issue regarding the use of the hybrid type system...
+</blockquote>
+</li>
+</ul>
+-->
+</div>
+
+
+<div id="type-checker" class="hid">
+<h2>Type-Checker</h2>
+
+<form id="form-typing" action="/" method="post">
+<div>
+<b>Load example:</b> &nbsp;
+Category: <select id="cat" onchange="catchange(this.value)"> </select> &nbsp;
+File: <select id="ex"> </select> &nbsp;
+<input type="button" value="Load" onclick="loadex();">
+</div>
+
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend>Actions</legend>
+<p style="margin-top:0px">
+ <input type="button" value="Typecheck Input" onclick="typecheck();" />
+ &nbsp;
+ <input type="button" value="Run Generated Code" onclick="runCompiledProg();" />
+</p>
+</fieldset>
+
+<div>
+<b>Input script:</b>
+<br />
+<textarea name="input" style="width:100%; height:250px;" id="jsi"> </textarea>
+
+<div id="div-jso">
+<b>Instrumented Script:</b>
+<br />
+<div id="output-holder"> </div>
+<textarea style="width:100%;height:200px;" id="jso"> </textarea>
+</div>
+
+</div>
+</form>
+
+<form id="form-types" action="/" method="post">
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend><b>Typing Environment</b></legend>
+<p style="margin-top:0px">
+<table id="tabletypeenv">	
+</table>
+<input type="button" value="Add Security Type" onclick="updateTypingEnvironment();" />
+</p>
+</fieldset></form>
+<br />
+<br />
+<form id="form-my-types" action="/" method="post">
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend><b>My Types</b></legend>
+<p style="margin-top:0px">
+<table id="tablemytypes">	
+</table>
+<input type="button" value="Define Security Type" onclick="updateMyTypes();" />
+</p>
+</fieldset></form>
+
+<div id="hybrid-source">
+<p>Source code available <a href="/jsdefp/">here</a>.</p>
+<p>
+Notes: 
+</p>
+</div>
+
+
+</div>
+
+
+<div id="case-study" class="hid">
+<h2>Contact Manager</h2>
+
+<p>
+ Here we present the code for a simple <i class="iflowtypes-word">Contact Manager</i> 
+ application as well as the security types required for typing it. 
+ You can change both the security types and the code and retype it. 
+ You can also run it.
+</p>
+
+<b>Security Types:</b>
+<br />
+<textarea style="width:100%; height:250px;" id="cm-sec-types"> </textarea>
+<br />
+<br />
+<b>Contact Manager Code:</b>
+<br />
+<textarea style="width:100%; height:250px;" id="ta-cm-input-code"> </textarea>
+<br />
+<fieldset style="margin-bottom: 6px;padding-bottom:0px">
+<legend><b>Processing Options</b></legend>
+<p style="margin-top:0px">
+ <button onclick="runContactManager();">Run CM</button>
+  &nbsp;&nbsp;&nbsp;
+ <button onclick="typeCheckCM();">Type Check CM</button> 
+</p>
+</fieldset>
+
+<textarea style="width:100%; height:250px;" id="ta-cm-output-code"> </textarea>
+
+
+</div>
+
+
+
+<div id="credits">
+<!--
+<table width="100%"><tr>
+<td width="50%" align="center">
+<a href="http://prosecco.inria.fr/" target="_blank">
+<img src="i/prosecco.png" alt="Programming Securely with Cryptography" />
+</a></td>
+<td align="center">
+<a href="http://www.inria.fr" target="_blank">
+<img src="i/inria.png" alt="Institut National de Recherche en Informatique et Automatique" />
+</a></td>
+</tr></table>-->
+</div>
+
+<iframe id="exec_iframe" src="exec_iframe.html">Exec IFrame</iframe>	
+
+<div id="example_categories">
+   <div class="category" name="basic"> 
+     	   <div>
+		   	  <span class="desc">Variable Assign - 1</span>
+		      <span class="prog_input">l = 0; h = l</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assign - 2</span>
+		      <span class="prog_input">h = 0; l = h</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assign - 3</span>
+		      <span class="prog_input">l1 = 0; l2 = 1; l1 = l1 + l2</span>
+              <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assign - 4</span>
+		      <span class="prog_input">l1 = 0; h = 1; l1 = l1 + h</span>
+              <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Variable Assign - 5</span>
+		      <span class="prog_input">l1 = 0; l2 = 1; h = 2; h = l1 + h</span>
+              <span class="types">l1: PRIM^{0}&#10; l2: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Property Look-up - 1</span>
+		      <span class="prog_input">y = 'p3'; o = {}; o.p3 = 0; l = o[y]</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">Property Look-up - 2</span>
+		      <span class="prog_input">y = 'p1'; o = {}; o.p1 = 0; l = o[y]</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		  
+		   <div>
+		      <span class="desc">Property Look-up - 3</span>
+		      <span class="prog_input">y = 'p1'; o = {}; o.p1 = 0; h = o[y];</span>
+              <span class="types">h: PRIM^{5}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 1</span>
+		      <span class="prog_input"> o = {}; o.p2 = 3; y = 'p1'; l = y in o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 2</span>
+		      <span class="prog_input">o = {}; o.p2 = 3; y = 'p1'; l = y in o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 3</span>
+		      <span class="prog_input">l = 'p1' in o;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{1}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">In Expression - 4</span>
+		      <span class="prog_input">l = 'xpto' in o;;</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		    
+		   <div>
+		      <span class="desc">Property Assign - 1</span>
+		      <span class="prog_input">o2 = {}; o1 = {}; o1.p1 = o2.xpto;</span>
+              <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Property Assign - 2</span>
+		      <span class="prog_input">o2 = {}; o1 = {}; x = 'q1'; y = 'p1'; o1[y] = o2[x];</span>
+              <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Property Assign - 3</span>
+		      <span class="prog_input">o2 = {}; o1 = {}; x = 'q1'; y = 'p2'; o1[y] = o2[x];</span>
+              <span class="types">x: PRIM^{0}&#10; y: PRIM^{0}&#10; o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10; o2: OBJ&lt;__k&gt;&lt; q1^{0}: PRIM^{1}, q2^{1}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		  
+		   <div>
+		      <span class="desc">Delete Expression - 1</span>
+		      <span class="prog_input">o = {}; o.p1 = 2; delete o.p1;</span>
+              <span class="types">y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{3}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Delete Expression - 2</span>
+		      <span class="prog_input">o = {}; o.p1 = 2; delete o.p1;</span>
+              <span class="types">y: PRIM^{1}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Delete Expression - 3</span>
+		      <span class="prog_input">o = {}; o.p1 = 2; y = 'p1'; delete o[y];</span>
+              <span class="types">y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Delete Expression - 4</span>
+		      <span class="prog_input">o = {}; o.p1 = 2; y = 'p2'; delete o[y];</span>
+              <span class="types">y: PRIM^{1}&#10; o: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		  
+		   <div>
+		      <span class="desc">If - 1</span>
+		      <span class="prog_input">h =1; l = 0; if (h) { l = 5 }</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">If - 2</span>
+		      <span class="prog_input">h = random(); if (h) { h = h + 1 } else { h = h - l}</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{5}&#10; random: FUN&lt;GLOB.()-&gt;^{0} PRIM^{0}&gt;^{0}</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		   	  <span class="desc">If - 3</span>
+		      <span class="prog_input">o = {}; o.p1 = 3; y = prompt("Which property do you want?"); if (o[y]) { l = 0 }</span>
+              <span class="types">l: PRIM^{0}&#10; y: PRIM^{0}&#10; o: OBJ&lt;__k&gt;&lt; p1^{0}: PRIM^{3}, p2^{0}: PRIM^{2}, *^{0}: PRIM^{0}&gt;^{0}&#10; prompt: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">While - 1</span>
+		      <span class="prog_input">l = 3; input = prompt("Type the input"); while (input > 0) {  l = l*input; input = input - 1;} alert("Output:" + l)</span>
+              <span class="types">l: PRIM^{0}&#10; input: PRIM^{0}&#10; prompt: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{0}&gt;^{0}&#10; alert: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+           
+            <div>
+		      <span class="desc">While - 2</span>
+		      <span class="prog_input">l = 3; input = prompt("Type the input"); while (input > 0) {  l = l*input; input = input - 1;} alert("Output:" + l)</span>
+              <span class="types">l: PRIM^{3}&#10; input: PRIM^{3}&#10; prompt: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{3}&gt;^{0}&#10; alert: FUN&lt;GLOB.(PRIM^{3})-&gt;^{0} PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">While - 3</span>
+		      <span class="prog_input">l = 3; input = prompt("Type the input"); while (input > 0) {  l = l*input; input = input - 1;} alert("Output:" + l)</span>
+              <span class="types">l: PRIM^{3}&#10; input: PRIM^{3}&#10; prompt: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{3}&gt;^{0}&#10; alert: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+   </div>
+   
+   <div class="category" name="func">
+   	       
+   	       <div>
+		      <span class="desc">Funcall - 1</span>
+		      <span class="prog_input">h = 2; f = function (x) { return x + h; }; h = f(3);</span>
+              <span class="types">h: PRIM^{5}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Funcall - 2</span>
+		      <span class="prog_input">l = f(3);</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Funcall - 3</span>
+		      <span class="prog_input">l = f(3);</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;**o1.(PRIM^{0})-&gt;^{0} PRIM^{5}&gt;^{0}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt; p1^{2}: PRIM^{3}, p2^{0}: PRIM^{0}, *^{0}: PRIM^{1}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		    <div>
+		      <span class="desc">Method Call - 1</span>
+		      <span class="prog_input">l = o.q(4); </span>
+              <span class="types">l: PRIM^{0}&#10; o: **o1&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{2} PRIM^{3}&gt;^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Method Call - 2</span>
+		      <span class="prog_input">o = {}; o.p = 1; o.q = function (x) { return h + this.p; }; y = 'p';  h = 3; o[y] = o.q(4); </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{0}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{2} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		    <div>
+		      <span class="desc">Method Call - 3</span>
+		      <span class="prog_input">o = {}; o.p = 1; y = 3; o.q = function (x) { x = x + y; y = 0; return h + x; }; h = 3; if (h) { o.q(3); } </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{3}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{3} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Method Call - 4</span>
+		      <span class="prog_input">o = {}; o.p = 1; y = 3; o.q = function (x) { x = x + y; y = 0; return h + x; }; h = 3; if (h) { o.q(3); } </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{0}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{0} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Method Call - 5</span>
+		      <span class="prog_input">o = {}; o.p = 1; y = 3; o.q = function (x) { x = x + y; y = 0; return h + x; }; h = 3; if (h) { o.q(3); } </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{0}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{0} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Method Call - 6</span>
+		      <span class="prog_input">o = {}; o.p = 1; o.s = 0; y = 's'; o.q = function (x) { x = x + y; y = 0; return h + x; }; h = 3; if (o[y]) { o.q(3); } </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{0}&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{0} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">This - 1</span>
+		      <span class="prog_input">o = {}; o.p = prompt("Type o.p:"); o.s = prompt("Type o.s:"); y = prompt("Type y:"); o.q = function (x) { o.s = this.p; return x; }; </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{0}&#10; prompt: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{0} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">This - 2</span>
+		      <span class="prog_input">o = {}; o.p = prompt("Type o.p:"); o.s = prompt("Type o.s:"); o.z = prompt('Type o.z:'); y = prompt("Type y:"); o.q = function (x) { o.s = this.z; return x; }; </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; y: PRIM^{0}&#10; prompt: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{0}&gt;^{0}&#10;</span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{0} PRIM^{3}&gt;^{0}, *^{0}: PRIM^{0}&gt;^{0}&#10;</span>
+		   </div>
+	   
+		   
+		   <div>
+		      <span class="desc">Function Literal - 1</span>
+		      <span class="prog_input">f = function (x) { return l;};</span>
+              <span class="types">l: PRIM^{0}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{2}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Function Literal - 2</span>
+		      <span class="prog_input">f = function (x) { return h;};</span>
+              <span class="types">h: PRIM^{4}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{0} PRIM^{2}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Function Literal - 3</span>
+		      <span class="prog_input">f = function (x) { l = 0; return h;};</span>
+              <span class="types">l: PRIM^{0}&#10; h: PRIM^{3}&#10; f: FUN&lt;GLOB.(PRIM^{0})-&gt;^{3} PRIM^{3}&gt;^{0}&#10;</span>
+              <span class="mytypes"></span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Function Literal - 4</span>
+		      <span class="prog_input">o.q = function (x) { return h; } </span>
+              <span class="types">h: PRIM^{3}&#10; o: **o1&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{2} PRIM^{2}&gt;^{0}&gt;^{0}&#10;</span>
+		   </div>
+		   
+		   <div>
+		      <span class="desc">Function Literal - 5</span>
+		      <span class="prog_input">o.q = function (x) { return l; } </span>
+              <span class="types">l: PRIM^{0}&#10; o: **o1&#10; </span>
+              <span class="mytypes">**o1: OBJ&lt;__k&gt;&lt;p^{2}: PRIM^{3}, q^{0}: FUN&lt;__k.(PRIM^{3}) -&gt;^{0} PRIM^{0}&gt;^{0}&gt;^{0}&#10;</span>
+		   </div>
+   </div>
+ 
+<div id='code_contact_manager'>CM = {};
+CM.proto_contact = {};
+CM.contact_list = {};
+
+CM.proto_contact.printContact = function() { 
+   return this.lst + ("," + this.fst);
+};
+
+CM.proto_contact.makeFavorite = function() { 
+   this.favorite = null;
+};                             
+
+CM.proto_contact.unFavorite = function() { 
+   delete this.favorite; 
+   return true; 
+};
+
+CM.proto_contact.isFavorite = function() { 
+   return "favorite" in this; 
+};
+
+CM.createContact = function(fst_name, lst_name, email) { 
+   var contact; 
+   contact = {}; 
+   contact.__proto__ = CM.proto_contact;
+   contact.fst = fst_name;
+   contact.lst = lst_name;  
+   contact.email = email; 
+   return contact; 
+};
+
+CM.storeContact = function(contact, i) {
+   var list, key; 
+   list = this.contact_list;
+   key = contact.lst+i;
+   if (key in list) {
+      CM.storeContact(contact, i+1);
+   } else {
+   	  list[key] = contact;
+   }
+};
+            
+CM.getContact = function(lst_name, i) { 
+	return this.contact_list[lst_name+i];
+};
+</div>
+  
+</div>
+
+<div id="type-insertion-dialog">
+	<b>Global Variable</b> &nbsp;
+    <input type="text" id="var_name" /> 
+    <br />
+	<b>Edit Type</b> <br />
+	<textarea style="width:100%; height:100px;" > </textarea>
+</div>
+
+<div id="type-update-dialog">
+    <b>Global Variable:</b> &nbsp;
+    <span class="var_name"> </span> 
+    <br />
+	<b>Security Type:</b> <br />
+	<div style="width:100%; height:100px;" class="type_text" > </div>
+</div>
+
+<div id="my-type-insertion-dialog">
+	<b>Type Name</b> &nbsp;
+    <input type="text" id="type_name" /> 
+    <br />
+	<b>Edit Type</b> <br />
+	<textarea style="width:100%; height:100px;" > </textarea>
+</div>
+
+<div id="my-type-update-dialog">
+    <b>Type Name:</b> &nbsp;
+    <span class="type_name"> </span> 
+    <br />
+	<b>Security Type:</b> <br />
+	<div style="width:100%; height:100px;" class="type_text" > </div>
+</div>
+
+
+
+</body>
+
+</html>
