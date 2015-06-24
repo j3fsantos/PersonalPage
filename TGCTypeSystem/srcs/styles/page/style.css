@@ -155,5 +155,10 @@ input[type="button"]:active, input[type="submit"]:active {
 	display: none;
 }
 
+#code_contact_manager {
+	display: none;
+}
+
+
 
 
